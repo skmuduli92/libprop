@@ -131,6 +131,7 @@ PHyperProp parse_formula(std::string const& str, PVarMap varmap) {
   typedef std::string::const_iterator iterator_type;
   typedef sexpr::ast::VarNode SExprAst;
 
+  assert(varmap->size());
   auto grammar = sexpr::parser();
   SExprAst exprAst;
 
