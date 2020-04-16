@@ -44,15 +44,15 @@ struct HPLTLStringBuilder {
   }
 
   result_t operator()(YNode const& ynode) const {
-    return "(Y " + boost::apply_visitor(*this, ynode.arg) + ")";
+    return "(X " + boost::apply_visitor(*this, ynode.arg) + ")";
   }
 
   result_t operator()(ONode const& onode) const {
-    return "(O " + boost::apply_visitor(*this, onode.arg) + ")";
+    return "(F " + boost::apply_visitor(*this, onode.arg) + ")";
   }
 
   result_t operator()(SNode const& snode) const {
-    return "(S " + boost::apply_visitor(*this, snode.leftArg) +
+    return "(U " + boost::apply_visitor(*this, snode.leftArg) +
            boost::apply_visitor(*this, snode.rightArg) + ")";
   }
 

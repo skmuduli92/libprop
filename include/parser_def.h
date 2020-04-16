@@ -38,17 +38,17 @@ auto const notstr = x3::string("NOT");
 auto const eqstr = x3::string("EQ");
 
 auto const gstr = x3::string("G");
-auto const ystr = x3::string("Y");
-auto const ostr = x3::string("O");
-auto const sstr = x3::string("S");
+auto const ystr = x3::string("X");
+auto const ostr = x3::string("F");
+auto const sstr = x3::string("U");
 
 auto const keywords =
     andstr | orstr | notstr | impstr | gstr | ystr | ostr | sstr | eqstr;
 
 auto const idexpr_def = (x3::lexeme[x3::alpha >> *(x3::alnum)] - keywords);
 
-auto const varexpr_def = '(' >> (notexpr | andexpr | orexpr | impexpr | gexpr |
-                                 yexpr | oexpr | sexpr) >>
+auto const varexpr_def = '(' >> (notexpr | andexpr | orexpr | impexpr | gexpr | yexpr |
+                                 oexpr | sexpr) >>
                          ')';
 
 auto const orexpr_def = orstr >> termexpr >> termexpr;

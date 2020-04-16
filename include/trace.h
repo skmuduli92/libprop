@@ -49,7 +49,7 @@ struct VarTrace {
 
   /** Extends the trace to the specified number of cycles. */
   void extendToCycle(uint32_t cycle) {
-    assert (cycle >= lastCycle);
+    assert(cycle >= lastCycle);
     lastCycle = cycle;
   }
 
@@ -110,7 +110,6 @@ class Trace {
     variables[i].updateValue(cycle, value);
   }
 
-
   /** Update the value of proposition i at time cycle. */
   void updatePropValue(unsigned i, uint32_t cycle, bool value) {
     assert(i < propositions.size());
@@ -126,7 +125,6 @@ class Trace {
     return variables[i][cycle];
   }
 
-
   /** Return the value of a proposition i at time cycle. */
   bool propValueAt(unsigned i, uint32_t cycle) {
     assert(i < propositions.size());
@@ -134,14 +132,18 @@ class Trace {
   }
 
   void extendToCycle(uint32_t cycle) {
-    assert (cycle >= lastCycle);
+    assert(cycle >= lastCycle);
     lastCycle = cycle;
-    for (auto p : propositions) { p.extendToCycle(cycle); }
-    for (auto v : variables) { v.extendToCycle(cycle); }
+    for (auto p : propositions) {
+      p.extendToCycle(cycle);
+    }
+    for (auto v : variables) {
+      v.extendToCycle(cycle);
+    }
   }
 
   /// get trace length (un-compressed)
-  size_t length(void) { return lastCycle; }
+  size_t length(void) { return 1 + lastCycle; }
 };
 
 typedef std::vector<PTrace> TraceList;

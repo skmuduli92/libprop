@@ -13,7 +13,7 @@ PHyperProp propertySinceOperator() {
   varmap->addIntVar("x");
   varmap->addIntVar("y");
 
-  std::string formula("(S (EQ y) (EQ x))");
+  std::string formula("(U (EQ y) (EQ x))");
   PHyperProp property = parse_formula(formula, varmap);
   return property;
 }
@@ -35,16 +35,14 @@ TEST(PropertyLibTest, ValidTraceSinceOperator) {
   unsigned traceLength = rand() % 20 + 20;
 
   for (; cycle < traceLength; ++cycle) {
-    xvalue = rand() % 100;
     // setting 'x' var value
-    trace1->updateTermValue(0, cycle, xvalue);
-    trace2->updateTermValue(0, cycle, !xvalue);
+    trace1->updateTermValue(xid, cycle, rand() % 100);
+    trace2->updateTermValue(xid, cycle, rand() % 100);
 
     // setting 'y' var value
-    trace1->updateTermValue(1, cycle, rand() % 100);
-    trace2->updateTermValue(1, cycle, rand() % 100);
-
-    result = property->eval(cycle, tracelist);
+    yvalue = rand() % 100;
+    trace1->updateTermValue(yid, cycle, yvalue);
+    trace2->updateTermValue(yid, cycle, yvalue);
   }
 
   xvalue = rand() % 100;
@@ -55,27 +53,29 @@ TEST(PropertyLibTest, ValidTraceSinceOperator) {
   yvalue = rand() % 100;
   trace1->updateTermValue(yid, cycle, yvalue);
   trace2->updateTermValue(yid, cycle, !yvalue);
-
-  result = property->eval(cycle, tracelist);
   cycle = cycle + 1;
 
   for (traceLength = rand() % 20 + 20 + cycle; cycle < traceLength; ++cycle) {
+    xvalue = rand() % 100;
     // setting 'x' var value
-    trace1->updateTermValue(xid, cycle, rand() % 100);
-    trace2->updateTermValue(xid, cycle, rand() % 100);
+    trace1->updateTermValue(0, cycle, xvalue);
+    trace2->updateTermValue(0, cycle, !xvalue);
 
     // setting 'y' var value
-    yvalue = rand() % 100;
-    trace1->updateTermValue(yid, cycle, yvalue);
-    trace2->updateTermValue(yid, cycle, yvalue);
+    trace1->updateTermValue(1, cycle, rand() % 100);
+    trace2->updateTermValue(1, cycle, rand() % 100);
+  }
 
-    result = property->eval(cycle, tracelist);
+  for (int cid = cycle - 1; cid >= 0; --cid) {
+    result = property->eval(cid, tracelist);
   }
 
   EXPECT_TRUE(result);
 }
 
 TEST(PropertyLibTest, InvalidTraceSinceOperator_Test1) {
+
+  // "( (EQ y) U (EQ x))"
   // eqX never becomes true, hence SINCE(eqY, eqX) should fail.
   PHyperProp property = propertySinceOperator();
 
@@ -88,7 +88,7 @@ TEST(PropertyLibTest, InvalidTraceSinceOperator_Test1) {
   unsigned yid = property->getVarId("y");
 
   size_t cycle = 0;
-  unsigned xvalue = 0;
+  unsigned xvalue = 0, yvalue = 0;
   unsigned traceLength = rand() % 20 + 20;
 
   for (; cycle < traceLength; ++cycle) {
@@ -96,11 +96,15 @@ TEST(PropertyLibTest, InvalidTraceSinceOperator_Test1) {
     // setting 'x' var value
     trace1->updateTermValue(xid, cycle, xvalue);
     trace2->updateTermValue(xid, cycle, !xvalue);
-    // setting 'y' var value
-    trace1->updateTermValue(yid, cycle, rand() % 100);
-    trace2->updateTermValue(yid, cycle, rand() % 100);
 
-    result = property->eval(cycle, tracelist);
+    // setting 'y' var value
+    yvalue = rand() % 100;
+    trace1->updateTermValue(yid, cycle, yvalue);
+    trace2->updateTermValue(yid, cycle, yvalue);
+  }
+
+  for (int cid = cycle - 1; cid >= 0; --cid) {
+    result = property->eval(cid, tracelist);
   }
 
   EXPECT_FALSE(result);
@@ -117,23 +121,23 @@ TEST(PropertyLibTest, InvalidTraceSinceOperator_Test2) {
   bool result = false;
 
   size_t cycle = 0;
-  unsigned xvalue = 0;
   unsigned yvalue = 0;
   unsigned xid = property->getVarId("x");
   unsigned yid = property->getVarId("y");
   unsigned traceLength = rand() % 20 + 20;
 
   for (; cycle < traceLength; ++cycle) {
-    xvalue = rand() % 100;
     // setting 'x' var value
-    trace1->updateTermValue(xid, cycle, xvalue);
-    trace2->updateTermValue(xid, cycle, xvalue);
+    trace1->updateTermValue(xid, cycle, rand() % std::numeric_limits<unsigned>::max());
+    trace2->updateTermValue(xid, cycle, rand() % std::numeric_limits<unsigned>::max());
     // setting 'y' var value
     yvalue = rand() % 100;
     trace1->updateTermValue(yid, cycle, yvalue);
     trace2->updateTermValue(yid, cycle, !yvalue);
+  }
 
-    result = property->eval(cycle, tracelist);
+  for (int cid = cycle - 1; cid >= 0; --cid) {
+    result = property->eval(cid, tracelist);
   }
 
   EXPECT_FALSE(result);
