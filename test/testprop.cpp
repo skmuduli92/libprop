@@ -39,19 +39,31 @@ struct HPLTLStringBuilder {
            boost::apply_visitor(*this, impNode.rightArg) + ")";
   }
 
-  result_t operator()(GNode const& gnode) const {
-    return "(G " + boost::apply_visitor(*this, gnode.arg) + ")";
+  result_t operator()(GPlusNode const& gnode) const {
+    return "(G+ " + boost::apply_visitor(*this, gnode.arg) + ")";
   }
 
-  result_t operator()(YNode const& ynode) const {
-    return "(X " + boost::apply_visitor(*this, ynode.arg) + ")";
+  result_t operator()(XPlusNode const& ynode) const {
+    return "(X+ " + boost::apply_visitor(*this, ynode.arg) + ")";
   }
 
-  result_t operator()(ONode const& onode) const {
-    return "(F " + boost::apply_visitor(*this, onode.arg) + ")";
+  result_t operator()(FPlusNode const& onode) const {
+    return "(F+ " + boost::apply_visitor(*this, onode.arg) + ")";
   }
 
-  result_t operator()(SNode const& snode) const {
+  result_t operator()(GMinusNode const& gnode) const {
+    return "(G- " + boost::apply_visitor(*this, gnode.arg) + ")";
+  }
+
+  result_t operator()(XMinusNode const& ynode) const {
+    return "(X- " + boost::apply_visitor(*this, ynode.arg) + ")";
+  }
+
+  result_t operator()(FMinusNode const& onode) const {
+    return "(F- " + boost::apply_visitor(*this, onode.arg) + ")";
+  }
+
+  result_t operator()(UNode const& snode) const {
     return "(U " + boost::apply_visitor(*this, snode.leftArg) +
            boost::apply_visitor(*this, snode.rightArg) + ")";
   }

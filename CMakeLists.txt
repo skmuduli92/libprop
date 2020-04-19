@@ -39,15 +39,13 @@ add_library(libprop ${SRC_FILES})
 
 # building libprop test
 # TODO: create a flag for optionally build test
-# add_executable(
-#   testlibprop
-#   test/testprop.cpp
-#   test/test_yesterday_operator.cpp
-#   test/test_once_operator.cpp
-#   test/test_since_operator.cpp
-#   )
+add_executable(
+  testlibprop
+  test/testprop.cpp
+  test/test_parser.cpp
+  )
 
-add_executable(testlibprop ${TEST_SRC_FILES})
+# add_executable(testlibprop ${TEST_SRC_FILES})
 
 target_link_libraries(testlibprop libprop gtest pthread)
 gtest_add_tests(TARGET testlibprop)

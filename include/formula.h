@@ -51,6 +51,7 @@ class VarMap {
   bool hasArrayVar(const std::string& name);
   bool hasIntVar(const std::string& name);
   bool hasPropVar(const std::string& name);
+  bool empty() { return varInfo.empty(); }
 };
 
 class Formula {
@@ -212,31 +213,61 @@ class Implies : public HyperProp {
 };
 
 /** Formula G(phi). */
-class Always : public HyperProp {
+class AlwaysPlus : public HyperProp {
   bool past;
 
  public:
-  Always(PVarMap m, PHyperProp f) : HyperProp(m), past(true) { args.push_back(f); }
+  AlwaysPlus(PVarMap m, PHyperProp f) : HyperProp(m), past(true) { args.push_back(f); }
 
   virtual void display(std::ostream& out) const;
   virtual bool eval(uint32_t cycle, const TraceList& traces);
 };
 
-class Yesterday : public HyperProp {
+// pessimistic
+class AlwaysMinus : public HyperProp {
+ public:
+  AlwaysMinus(PVarMap m, PHyperProp f) : HyperProp(m) { args.push_back(f); }
+
+  virtual void display(std::ostream& out) const;
+  virtual bool eval(uint32_t cycle, const TraceList& traces);
+};
+
+class NextPlus : public HyperProp {
   bool present;
 
  public:
-  Yesterday(PVarMap m, PHyperProp f) : HyperProp(m), present(false) { args.push_back(f); }
+  NextPlus(PVarMap m, PHyperProp f) : HyperProp(m), present(true) { args.push_back(f); }
 
   virtual void display(std::ostream& out) const;
   virtual bool eval(uint32_t cycle, const TraceList& traces);
 };
 
-class Once : public HyperProp {
+class NextMinus : public HyperProp {
+  bool present;
+
+ public:
+  // initializing preent value to false ==> pessimistic
+  NextMinus(PVarMap m, PHyperProp f) : HyperProp(m), present(false) { args.push_back(f); }
+
+  virtual void display(std::ostream& out) const;
+  virtual bool eval(uint32_t cycle, const TraceList& traces);
+};
+
+class FutureMinus : public HyperProp {
   bool valid;
 
  public:
-  Once(PVarMap m, PHyperProp f) : HyperProp(m), valid(false) { args.push_back(f); }
+  FutureMinus(PVarMap m, PHyperProp f) : HyperProp(m), valid(false) { args.push_back(f); }
+
+  virtual void display(std::ostream& out) const;
+  virtual bool eval(uint32_t cycle, const TraceList& traces);
+};
+
+// optimistic
+class FuturePlus : public HyperProp {
+
+ public:
+  FuturePlus(PVarMap m, PHyperProp f) : HyperProp(m) { args.push_back(f); }
 
   virtual void display(std::ostream& out) const;
   virtual bool eval(uint32_t cycle, const TraceList& traces);

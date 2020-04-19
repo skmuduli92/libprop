@@ -12,13 +12,19 @@ BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::ImpNode, opname, leftArg, rightArg);
 
 BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::NotNode, opname, arg);
 
-BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::GNode, opname, arg);
+BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::GPlusNode, opname, arg);
 
-BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::YNode, opname, arg);
+BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::XPlusNode, opname, arg);
 
-BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::ONode, opname, arg);
+BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::FPlusNode, opname, arg);
 
-BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::SNode, opname, leftArg, rightArg);
+BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::GMinusNode, opname, arg);
+
+BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::XMinusNode, opname, arg);
+
+BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::FMinusNode, opname, arg);
+
+BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::UNode, opname, leftArg, rightArg);
 
 BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::EqlNode, opname, varname);
 

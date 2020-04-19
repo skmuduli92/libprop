@@ -8,7 +8,7 @@
 using namespace std;
 using namespace HyperPLTL;
 
-TEST(PropertyLibTest, TestYesterdaySimple) {
+TEST(PropertyLibTest, TestFutureMinusSimple) {
   PVarMap varmap(new VarMap());
   // x
   unsigned xIndex = varmap->addIntVar("x");
@@ -22,13 +22,13 @@ TEST(PropertyLibTest, TestYesterdaySimple) {
   PHyperProp eqY(new Equal(varmap, y));
 
   // (Y (eq x))
-  PHyperProp YesterdayEqX(new Yesterday(varmap, eqX));
+  PHyperProp FutureMinusEqX(new FutureMinus(varmap, eqX));
 
   // // (G (eq y))
   // PHyperProp GeqY(new Always(varmap, eqY));
 
   // (Y (eq x)) => (eq y)
-  PHyperProp F(new Implies(varmap, YesterdayEqX, eqY));
+  PHyperProp F(new Implies(varmap, FutureMinusEqX, eqY));
   // F->display(std::cout); std::cout << std::endl;
   bool result = true;
 
@@ -131,9 +131,9 @@ TEST(PropertyLibTest, TestALWAYSSimple) {
   // (eq y)
   PHyperProp eqY(new Equal(varmap, y));
   // (G (eq x))
-  PHyperProp GeqX(new Always(varmap, eqX));
+  PHyperProp GeqX(new AlwaysPlus(varmap, eqX));
   // (G (eq y))
-  PHyperProp GeqY(new Always(varmap, eqY));
+  PHyperProp GeqY(new AlwaysPlus(varmap, eqY));
   // (G (eq x)) => (G (eq y))
   PHyperProp F(new Implies(varmap, GeqX, GeqY));
   // cout << "formula: "; F->display(cout); cout << endl;

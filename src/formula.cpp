@@ -265,29 +265,53 @@ bool Implies ::eval(uint32_t cycle, const TraceList& traces) {
 //                            class Always                                //
 // ---------------------------------------------------------------------- //
 
-void Always::display(std::ostream& out) const {
-  out << "(G ";
+void AlwaysPlus::display(std::ostream& out) const {
+  out << "(G+ ";
   args[0]->display(out);
   out << ")";
 }
 
-bool Always::eval(uint32_t cycle, const TraceList& traces) {
+bool AlwaysPlus::eval(uint32_t cycle, const TraceList& traces) {
   auto f = std::dynamic_pointer_cast<HyperProp>(args[0]);
   past = past && f->eval(cycle, traces);
   return past;
 }
 
+void AlwaysMinus::display(std::ostream& out) const {
+  out << "(G- ";
+  args[0]->display(out);
+  out << ")";
+}
+
+bool AlwaysMinus::eval(uint32_t cycle, const TraceList& traces) { return false; }
+
 // ---------------------------------------------------------------------- //
 //                        class Yesterday                                 //
 // ---------------------------------------------------------------------- //
 
-void Yesterday::display(std::ostream& out) const {
+void NextMinus::display(std::ostream& out) const {
   out << "(Y ";
   args[0]->display(out);
   out << ")";
 }
 
-bool Yesterday::eval(uint32_t cycle, const TraceList& traces) {
+bool NextMinus::eval(uint32_t cycle, const TraceList& traces) {
+  // FIXME : need to fix yesterday computation logic or trace compression
+  // mechanism, the evaluation seems to be returning past values
+
+  auto f = std::dynamic_pointer_cast<HyperProp>(args[0]);
+  bool past = present;
+  present = f->eval(cycle, traces);
+  return past;
+}
+
+void NextPlus::display(std::ostream& out) const {
+  out << "(Y ";
+  args[0]->display(out);
+  out << ")";
+}
+
+bool NextPlus::eval(uint32_t cycle, const TraceList& traces) {
   // FIXME : need to fix yesterday computation logic or trace compression
   // mechanism, the evaluation seems to be returning past values
 
@@ -301,17 +325,25 @@ bool Yesterday::eval(uint32_t cycle, const TraceList& traces) {
 //                        class once                                      //
 // ---------------------------------------------------------------------- //
 
-void Once::display(std::ostream& out) const {
-  out << "(O ";
+void FutureMinus::display(std::ostream& out) const {
+  out << "(F- ";
   args[0]->display(out);
   out << ")";
 }
 
-bool Once::eval(uint32_t cycle, const TraceList& traces) {
+bool FutureMinus::eval(uint32_t cycle, const TraceList& traces) {
   auto f = std::dynamic_pointer_cast<HyperProp>(args[0]);
   valid = valid || f->eval(cycle, traces);
   return valid;
 }
+
+void FuturePlus::display(std::ostream& out) const {
+  out << "(F+ ";
+  args[0]->display(out);
+  out << ")";
+}
+
+bool FuturePlus::eval(uint32_t cycle, const TraceList& traces) { return true; }
 
 // ---------------------------------------------------------------------- //
 //                        class since                                     //

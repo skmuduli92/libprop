@@ -89,29 +89,47 @@ struct HPLTLBuilder {
     return imp;
   }
 
-  result_t operator()(GNode const& gnode) const {
+  result_t operator()(GPlusNode const& gnode) const {
     result_t argP = boost::apply_visitor(*this, gnode.arg);
-    result_t always(new HyperPLTL::Always(varmap, argP));
-    return always;
+    result_t gplus(new HyperPLTL::AlwaysPlus(varmap, argP));
+    return gplus;
   }
 
-  result_t operator()(YNode const& ynode) const {
+  result_t operator()(XPlusNode const& ynode) const {
     result_t argP = boost::apply_visitor(*this, ynode.arg);
-    result_t yesterday(new HyperPLTL::Yesterday(varmap, argP));
-    return yesterday;
+    result_t xplus(new HyperPLTL::NextMinus(varmap, argP));
+    return xplus;
   }
 
-  result_t operator()(ONode const& onode) const {
+  result_t operator()(FPlusNode const& onode) const {
     result_t argP = boost::apply_visitor(*this, onode.arg);
-    result_t once(new HyperPLTL::Once(varmap, argP));
-    return once;
+    result_t future(new HyperPLTL::FuturePlus(varmap, argP));
+    return future;
   }
 
-  result_t operator()(SNode const& snode) const {
+  result_t operator()(GMinusNode const& gnode) const {
+    result_t argP = boost::apply_visitor(*this, gnode.arg);
+    result_t gminus(new HyperPLTL::AlwaysMinus(varmap, argP));
+    return gminus;
+  }
+
+  result_t operator()(XMinusNode const& ynode) const {
+    result_t argP = boost::apply_visitor(*this, ynode.arg);
+    result_t xminus(new HyperPLTL::NextMinus(varmap, argP));
+    return xminus;
+  }
+
+  result_t operator()(FMinusNode const& onode) const {
+    result_t argP = boost::apply_visitor(*this, onode.arg);
+    result_t future(new HyperPLTL::FutureMinus(varmap, argP));
+    return future;
+  }
+
+  result_t operator()(UNode const& snode) const {
     result_t leftP = boost::apply_visitor(*this, snode.leftArg);
     result_t rightP = boost::apply_visitor(*this, snode.rightArg);
-    result_t since(new HyperPLTL::Since(varmap, leftP, rightP));
-    return since;
+    result_t until(new HyperPLTL::Since(varmap, leftP, rightP));
+    return until;
   }
 
   result_t operator()(VarNode const& varNode) const {
@@ -131,7 +149,7 @@ PHyperProp parse_formula(std::string const& str, PVarMap varmap) {
   typedef std::string::const_iterator iterator_type;
   typedef sexpr::ast::VarNode SExprAst;
 
-  assert(varmap->size());
+  assert(varmap->empty() == false);
   auto grammar = sexpr::parser();
   SExprAst exprAst;
 

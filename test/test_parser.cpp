@@ -31,7 +31,7 @@ TEST(PropertyLibTest, Parse_AND) {
 }
 
 TEST(PropertyLibTest, Parse_OR) {
-  std::string prop = "(OR (EQ x11) (G (EQ y12a)) )";
+  std::string prop = "(OR (EQ x11) (G+ (EQ y12a)) )";
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
@@ -47,7 +47,7 @@ TEST(PropertyLibTest, Parse_IMPLIES) {
 }
 
 TEST(PropertyLibTest, Parse_TraceSelect) {
-  std::string prop = "(F (IMPLIES good.1 good.2))";
+  std::string prop = "(F- (IMPLIES good.1 good.2))";
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
@@ -90,7 +90,8 @@ TEST(PropertyLibTest, Parse_TestFailure_KeywordAsVarName) {
 }
 
 TEST(PropertyLibTest, Parse_ComplexProperty) {
-  std::string prop = "(G (IMPLIES (AND (NOT (EQ ab)) (EQ bc)) (X (OR (EQ cd) (EQ de)))))";
+  std::string prop =
+      "(G+ (IMPLIES (AND (NOT (EQ ab)) (EQ bc)) (X+ (OR (EQ cd) (EQ de)))))";
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
@@ -99,7 +100,7 @@ TEST(PropertyLibTest, Parse_ComplexProperty) {
 
 TEST(PropertyLibTest, Parse_TestFailure_ComplexProperty) {
   std::string prop =
-      "(G (IMPLIES (AND (NOT (EQ ab)) (EQ bc)) (X (OR (EQ cd) (EQ de)))) (EQ ef))";
+      "(G- (IMPLIES (AND (NOT (EQ ab)) (EQ bc)) (X- (OR (EQ cd) (EQ de)))) (EQ ef))";
 
   EXPECT_EXIT(HyperPLTL::parse_and_regen_string(prop), ::testing::ExitedWithCode(1),
               PARSE_ERR_MSG);

@@ -15,10 +15,15 @@ struct OrNode;
 struct ImpNode;
 struct NotNode;
 
-struct GNode;
-struct YNode;
-struct ONode;
-struct SNode;
+struct GPlusNode;
+struct XPlusNode;
+struct FPlusNode;
+
+struct GMinusNode;
+struct XMinusNode;
+struct FMinusNode;
+
+struct UNode;
 
 struct EqlNode {
   std::string opname;
@@ -32,9 +37,10 @@ struct TraceSelNode {
 
 struct VarNode : x3::variant<EqlNode, TraceSelNode, x3::forward_ast<AndNode>,
                              x3::forward_ast<OrNode>, x3::forward_ast<ImpNode>,
-                             x3::forward_ast<NotNode>, x3::forward_ast<GNode>,
-                             x3::forward_ast<YNode>, x3::forward_ast<ONode>,
-                             x3::forward_ast<SNode> > {
+                             x3::forward_ast<NotNode>, x3::forward_ast<GPlusNode>,
+                             x3::forward_ast<XPlusNode>, x3::forward_ast<FPlusNode>,
+                             x3::forward_ast<GMinusNode>, x3::forward_ast<XMinusNode>,
+                             x3::forward_ast<FMinusNode>, x3::forward_ast<UNode> > {
   using base_type::base_type;
   using base_type::operator=;
 };
@@ -58,10 +64,15 @@ struct AndNode : BinaryOpNode {};
 struct OrNode : BinaryOpNode {};
 struct ImpNode : BinaryOpNode {};
 
-struct GNode : UnaryOpNode {};
-struct YNode : UnaryOpNode {};
-struct ONode : UnaryOpNode {};
-struct SNode : BinaryOpNode {};
+struct GPlusNode : UnaryOpNode {};
+struct XPlusNode : UnaryOpNode {};
+struct FPlusNode : UnaryOpNode {};
+
+struct GMinusNode : UnaryOpNode {};
+struct XMinusNode : UnaryOpNode {};
+struct FMinusNode : UnaryOpNode {};
+
+struct UNode : BinaryOpNode {};
 
 }  // namespace sexpr::ast
 
