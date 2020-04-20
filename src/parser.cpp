@@ -95,28 +95,28 @@ struct HPLTLBuilder {
     return gplus;
   }
 
-  result_t operator()(XPlusNode const& ynode) const {
-    result_t argP = boost::apply_visitor(*this, ynode.arg);
-    result_t xplus(new HyperPLTL::NextMinus(varmap, argP));
-    return xplus;
-  }
-
-  result_t operator()(FPlusNode const& onode) const {
-    result_t argP = boost::apply_visitor(*this, onode.arg);
-    result_t future(new HyperPLTL::FuturePlus(varmap, argP));
-    return future;
-  }
-
   result_t operator()(GMinusNode const& gnode) const {
     result_t argP = boost::apply_visitor(*this, gnode.arg);
     result_t gminus(new HyperPLTL::AlwaysMinus(varmap, argP));
     return gminus;
   }
 
+  result_t operator()(XPlusNode const& ynode) const {
+    result_t argP = boost::apply_visitor(*this, ynode.arg);
+    result_t xplus(new HyperPLTL::NextPlus(varmap, argP));
+    return xplus;
+  }
+
   result_t operator()(XMinusNode const& ynode) const {
     result_t argP = boost::apply_visitor(*this, ynode.arg);
     result_t xminus(new HyperPLTL::NextMinus(varmap, argP));
     return xminus;
+  }
+
+  result_t operator()(FPlusNode const& onode) const {
+    result_t argP = boost::apply_visitor(*this, onode.arg);
+    result_t future(new HyperPLTL::FuturePlus(varmap, argP));
+    return future;
   }
 
   result_t operator()(FMinusNode const& onode) const {
