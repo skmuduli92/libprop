@@ -290,7 +290,7 @@ bool AlwaysMinus::eval(uint32_t cycle, const TraceList& traces) { return false; 
 // ---------------------------------------------------------------------- //
 
 void NextMinus::display(std::ostream& out) const {
-  out << "(Y ";
+  out << "(X- ";
   args[0]->display(out);
   out << ")";
 }
@@ -306,7 +306,7 @@ bool NextMinus::eval(uint32_t cycle, const TraceList& traces) {
 }
 
 void NextPlus::display(std::ostream& out) const {
-  out << "(Y ";
+  out << "(X+ ";
   args[0]->display(out);
   out << ")";
 }

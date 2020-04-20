@@ -43,6 +43,11 @@ add_executable(
   testlibprop
   test/testprop.cpp
   test/test_parser.cpp
+  test/test_GPlus.cpp
+  test/test_GMinus.cpp
+  test/test_FPlus.cpp
+  test/test_FMinus.cpp
+  test/test_XPlus.cpp
   )
 
 # add_executable(testlibprop ${TEST_SRC_FILES})
