@@ -9,22 +9,21 @@
 using namespace HyperPLTL;
 using namespace std;
 
-PHyperProp property1NextPlusOperator() {
+PHyperProp property1NextMinusOperator() {
   PVarMap varmap = std::make_shared<VarMap>();
   varmap->addIntVar("x");
-  std::string formula("(G+ (X+ (EQ x)))");
+  std::string formula("(G+ (X- (EQ x)))");
   return parse_formula(formula, varmap);
 }
-PHyperProp property2NextPlusOperator() {
+PHyperProp property2NextMinusOperator() {
   PVarMap varmap = std::make_shared<VarMap>();
   varmap->addIntVar("x");
-  std::string formula("(X+ (EQ x))");
+  std::string formula("(X- (EQ x))");
   return parse_formula(formula, varmap);
 }
 
-
-TEST(PropertyLibTest, ValidTraceNextPlusOperator_Test1) {
-  PHyperProp property = property1NextPlusOperator();
+TEST(PropertyLibTest, ValidTraceNextMinusOperator_Test1) {
+  PHyperProp property = property1NextMinusOperator();
 
   PTrace trace1(new Trace(0, 1));
   PTrace trace2(new Trace(0, 1));
@@ -42,11 +41,11 @@ TEST(PropertyLibTest, ValidTraceNextPlusOperator_Test1) {
 
   result = evaluateTraces(property, tracelist);
 
-  EXPECT_TRUE(result);
+  EXPECT_FALSE(result);
 }
 
-TEST(PropertyLibTest, InvalidTraceNextPlusOperator_Test1) {
-  PHyperProp property = property1NextPlusOperator();
+TEST(PropertyLibTest, InvalidTraceNextMinusOperator_Test1) {
+  PHyperProp property = property1NextMinusOperator();
 
   PTrace trace1(new Trace(0, 1));
   PTrace trace2(new Trace(0, 1));
@@ -71,8 +70,8 @@ TEST(PropertyLibTest, InvalidTraceNextPlusOperator_Test1) {
   EXPECT_FALSE(result);
 }
 
-TEST(PropertyLibTest, ValidTraceNextPlusOperator_TestAtTraceEnd) {
-  PHyperProp property = property2NextPlusOperator();
+TEST(PropertyLibTest, ValidTraceNextMinusOperator_TestAtTraceEnd) {
+  PHyperProp property = property2NextMinusOperator();
 
   PTrace trace1(new Trace(0, 1));
   PTrace trace2(new Trace(0, 1));
@@ -90,5 +89,5 @@ TEST(PropertyLibTest, ValidTraceNextPlusOperator_TestAtTraceEnd) {
 
   result = property->eval(traceLength-1, tracelist);
 
-  EXPECT_TRUE(result);
+  EXPECT_FALSE(result);
 }

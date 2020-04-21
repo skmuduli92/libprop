@@ -48,6 +48,7 @@ add_executable(
   test/test_FPlus.cpp
   test/test_FMinus.cpp
   test/test_XPlus.cpp
+  test/test_XMinus.cpp
   )
 
 # add_executable(testlibprop ${TEST_SRC_FILES})
