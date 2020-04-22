@@ -113,3 +113,22 @@ TEST(PropertyLibTest, Parse_TermVarArray) {
 
   EXPECT_TRUE(origPropPruned == regenStrPruned);
 }
+
+TEST(PropertyLibTest, ParserVarMap) {
+  std::string prop1 = "(G+ (IMPLIES (EQ idTwo) (EQ idOne)))";
+
+  HyperPLTL::PVarMap varmap = std::make_shared<HyperPLTL::VarMap>();
+  varmap->addIntVar("idOne");
+  varmap->addIntVar("idTwo");
+  varmap->addIntVar("idThree");
+
+  auto hpltl1 = parse_formula(prop1, varmap);
+
+  std::string prop2 = "(IMPLIES (G+ (AND (EQ idThree) (EQ idOne))) (EQ idTwo))";
+  auto hpltl2 = parse_formula(prop2, varmap);
+
+  // TODO : write a function or lamda to create a pairwise comparision
+
+  EXPECT_EQ(hpltl1->getVarId("idOne"), hpltl2->getVarId("idOne"));
+  EXPECT_EQ(hpltl1->getVarId("idTwo"), hpltl2->getVarId("idTwo"));
+}

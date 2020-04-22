@@ -258,7 +258,13 @@ void Implies ::display(std::ostream& out) const {
 bool Implies ::eval(uint32_t cycle, const TraceList& traces) {
   auto p1 = std::dynamic_pointer_cast<HyperProp>(args[0]);
   auto p2 = std::dynamic_pointer_cast<HyperProp>(args[1]);
-  return (!p1->eval(cycle, traces)) || p2->eval(cycle, traces);
+
+  // NOTE : do not combine both the expression,
+  // OR short circuiting may have side-effect in property evaluation
+  bool p1value = p1->eval(cycle, traces);
+  bool p2value = p2->eval(cycle, traces);
+
+  return (!p1value) || p2value;
 }
 
 // ---------------------------------------------------------------------- //

@@ -1,30 +1,24 @@
 
-#include "trace.h"
 #include <gtest/gtest.h>
+#include "trace.h"
 
 using namespace std;
 
-
-TEST(PropertyLibTest, TestVarTrace)
-{
+TEST(PropertyLibTest, TestVarTrace) {
 
   VarTrace<unsigned> vartr;
 
   unsigned cycle = 0;
- 
-  for (; cycle < 4; ++cycle)
-    vartr.updateValue(cycle, 1);
 
-  for (; cycle < 6; ++cycle)
-    vartr.updateValue(cycle, 2);
+  for (; cycle < 4; ++cycle) vartr.updateValue(cycle, 1);
 
-  for (; cycle < 10; ++cycle)
-    vartr.updateValue(cycle, 3);
+  for (; cycle < 6; ++cycle) vartr.updateValue(cycle, 2);
 
+  for (; cycle < 10; ++cycle) vartr.updateValue(cycle, 3);
 
   // trace is in compressed format
   EXPECT_EQ(3, vartr.size());
-  
+
   EXPECT_EQ(1, vartr[0]);
   EXPECT_EQ(1, vartr[1]);
   EXPECT_EQ(1, vartr[2]);
