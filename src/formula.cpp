@@ -1,3 +1,11 @@
+
+
+//////////////////////////////////////////////////////////////////////////////
+// ⚠ WARNING : Short circuiting in evaluation of logical operators (&&, ||) //
+// may have side effect in evaluation of property. For safety evaluate each //
+// sub-formulas of a logical operator separately.                           //
+//////////////////////////////////////////////////////////////////////////////
+
 #include "formula.h"
 
 namespace HyperPLTL {
@@ -97,7 +105,8 @@ bool VarMap::hasPropVar(const std::string& name) {
 // ---------------------------------------------------------------------- //
 void True::display(std::ostream& out) const { out << "true"; }
 
-bool True::propValue(uint32_t cycle, unsigned trace, const TraceList& traces) {
+bool True::propValue([[maybe_unused]] uint32_t cycle, [[maybe_unused]] unsigned trace,
+                     [[maybe_unused]] const TraceList& traces) {
   return true;
 }
 
@@ -217,7 +226,8 @@ bool And::eval(uint32_t cycle, const TraceList& traces) {
   bool r = true;
   for (auto arg : args) {
     auto p = dynamic_pointer_cast<HyperProp>(arg);
-    r = r && p->eval(cycle, traces);
+    bool currval = p->eval(cycle, traces);
+    r = r && currval;
   }
   return r;
 }
@@ -238,7 +248,8 @@ bool Or::eval(uint32_t cycle, const TraceList& traces) {
   bool r = false;
   for (auto arg : args) {
     auto p = std::dynamic_pointer_cast<HyperProp>(arg);
-    r = r || p->eval(cycle, traces);
+    bool currval = p->eval(cycle, traces);
+    r = r || currval;
   }
   return r;
 }
@@ -259,11 +270,8 @@ bool Implies ::eval(uint32_t cycle, const TraceList& traces) {
   auto p1 = std::dynamic_pointer_cast<HyperProp>(args[0]);
   auto p2 = std::dynamic_pointer_cast<HyperProp>(args[1]);
 
-  // NOTE : do not combine both the expression,
-  // OR short circuiting may have side-effect in property evaluation
   bool p1value = p1->eval(cycle, traces);
   bool p2value = p2->eval(cycle, traces);
-
   return (!p1value) || p2value;
 }
 
@@ -279,7 +287,8 @@ void AlwaysPlus::display(std::ostream& out) const {
 
 bool AlwaysPlus::eval(uint32_t cycle, const TraceList& traces) {
   auto f = std::dynamic_pointer_cast<HyperProp>(args[0]);
-  past = past && f->eval(cycle, traces);
+  bool currval = f->eval(cycle, traces);
+  past = past && currval;
   return past;
 }
 
@@ -289,7 +298,10 @@ void AlwaysMinus::display(std::ostream& out) const {
   out << ")";
 }
 
-bool AlwaysMinus::eval(uint32_t cycle, const TraceList& traces) { return false; }
+bool AlwaysMinus::eval([[maybe_unused]] uint32_t cycle,
+                       [[maybe_unused]] const TraceList& traces) {
+  return false;
+}
 
 // ---------------------------------------------------------------------- //
 //                        class Yesterday                                 //
@@ -339,7 +351,8 @@ void FutureMinus::display(std::ostream& out) const {
 
 bool FutureMinus::eval(uint32_t cycle, const TraceList& traces) {
   auto f = std::dynamic_pointer_cast<HyperProp>(args[0]);
-  valid = valid || f->eval(cycle, traces);
+  bool currval = f->eval(cycle, traces);
+  valid = valid || currval;
   return valid;
 }
 
@@ -349,7 +362,10 @@ void FuturePlus::display(std::ostream& out) const {
   out << ")";
 }
 
-bool FuturePlus::eval(uint32_t cycle, const TraceList& traces) { return true; }
+bool FuturePlus::eval([[maybe_unused]] uint32_t cycle,
+                      [[maybe_unused]] const TraceList& traces) {
+  return true;
+}
 
 // ---------------------------------------------------------------------- //
 //                        class since                                     //
@@ -371,7 +387,8 @@ bool Since::eval(uint32_t cycle, const TraceList& traces) {
     validF2 = f2->eval(cycle, traces);
     return false;
   } else {
-    validF1 = validF1 && f1->eval(cycle, traces);
+    bool currval = f1->eval(cycle, traces);
+    validF1 = validF1 && currval;
     return validF1;
   }
 }
