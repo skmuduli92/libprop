@@ -40,13 +40,14 @@ map<unsigned, map<string, vector<pair<unsigned, unsigned>>>> readFileTraces(){
     string var = varints[i];
     varfile.open(varints[i]+".facts");
     string x;
-    while (varfile >> x && x!="\n" && x!="" && x!="\0") {
+    while (varfile >> x) {
+        assert(x!="\n" && x!="" && x!="\0");
         tr = stoi(x);
         varfile >> x;
         ti = stoi(x);
         varfile >> x;
         val = stoi(x);
-        if ( read_traces.find(tr) == read_traces.end() )
+        if ( read_traces.find(tr) == read_traces.end() || read_traces[tr].find(var) == read_traces[tr].end())
             read_traces[tr][var] = vector<pair<unsigned, unsigned>>();
         read_traces[tr][var].push_back(make_pair(ti, val));
     }
@@ -57,13 +58,14 @@ map<unsigned, map<string, vector<pair<unsigned, unsigned>>>> readFileTraces(){
     string var = varprops[i];
     varfile.open(varprops[i]+".facts");
     string x;
-    while (varfile >> x && x!="\n" && x!="" && x!="\0") {
+    while (varfile >> x) {
+        assert(x!="\n" && x!="" && x!="\0");
         tr = stoi(x);
         varfile >> x;
         ti = stoi(x);
         varfile >> x;
         val = stoi(x);
-        if ( read_traces.find(tr) == read_traces.end() )
+        if ( read_traces.find(tr) == read_traces.end() || read_traces[tr].find(var) == read_traces[tr].end())
             read_traces[tr][var] = vector<pair<unsigned, unsigned>>();
         read_traces[tr][var].push_back(make_pair(ti, val));
     }
@@ -147,7 +149,6 @@ void ParseAll() {
                 for(auto pr:traces[tr1][vars]){
                     assert(pr.second%2==pr.second);
                     trace1->updatePropValue(xid, pr.first, pr.second);
-                    traceend = max(pr.second, traceend);
                     locTE = max(pr.first, locTE);
                 }
                 traceend = min(locTE, traceend);
@@ -167,7 +168,7 @@ void ParseAll() {
                 for(auto vars: int_vars){
                     unsigned locTE = 0;
                     unsigned xid = property->getVarId(vars);
-                    for(auto pr:traces[tr1][vars]){
+                    for(auto pr:traces[tr2][vars]){
                         trace2->updateTermValue(xid, pr.first, pr.second);
                         locTE = max(pr.first, locTE);   
                     }
@@ -176,7 +177,7 @@ void ParseAll() {
                 for(auto vars: bool_vars){
                     unsigned locTE = 0;
                     unsigned xid = property->getPropId(vars);
-                    for(auto pr:traces[tr1][vars]){
+                    for(auto pr:traces[tr2][vars]){
                         assert(pr.second%2==pr.second);
                         trace2->updatePropValue(xid, pr.first, pr.second);
                         locTE = max(pr.first, locTE);   
