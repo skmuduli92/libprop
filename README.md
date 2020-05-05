@@ -37,6 +37,7 @@
   ```
   e.g. <code>./bin/testlibprop --gtest_filter="PropertyLibTest.ValidTraceNotOperator"</code>
 
+<!---
 ## Property Specification
 
  + Temporal operators
@@ -93,4 +94,6 @@ rparen          := ")"
 
 <img src="./doc/inherit_graph_0.png" />
 
-[(complete class diagram)](https://github.com/tgourav/fuzztest/blob/master/libprop/doc/class_hyper_p_l_t_l_1_1_formula__inherit__graph.png)
+[(complete class diagram)](https://github.com/skmuduli92/libprop/blob/master/doc/inherit_graph_0.png)
+--->
+
