@@ -9,6 +9,7 @@
 
 class Trace;
 typedef std::shared_ptr<Trace> PTrace;
+typedef std::vector<PTrace> TraceList;
 
 template <class T>
 struct VarTrace {
@@ -83,11 +84,19 @@ class Trace {
   /** A vector of traces for each propositional variable. */
   std::vector<VarTrace<bool>> propositions;
 
+  //
+  // TODO :
+  //  + instead of making ValueType a std::variant
+  //    make VarTrace a variant, this will fix non-homogeneity issue
+  //
+  //  + write visitor methods to process serialization nicely
+  //
+
   /** A vector of traces for each term variable. */
   std::vector<VarTrace<ValueType>> variables;
 
   /** The last valid time cycle in this trace. */
-  unsigned lastCycle;
+  uint32_t lastCycle;
 
  public:
   /** Create a trace capable of storing numVars variables and
@@ -144,7 +153,37 @@ class Trace {
 
   /// get trace length (un-compressed)
   size_t length(void) { return 1 + lastCycle; }
+
+  // utility function to store a trace object in binary format for
+
+ private:
+  friend class TraceSerialize;
+
+  // TODO : overload == operator to test load and store
 };
 
-typedef std::vector<PTrace> TraceList;
+class TraceSerialize {
+
+ public:
+  TraceSerialize(uint8_t* memaddr) : bytecount(0), destaddr(memaddr) {}
+
+  void store(PTrace trace);
+  PTrace load(void* memloc);
+  void setdest(uint8_t* memloc) { destaddr = memloc; }
+
+  /// returns no. of bytes to store the trace object in raw binary
+  static size_t getsize(PTrace trace);
+
+ private:
+  // private members to handle each of vartype
+  // returns amount of bytes written to the location
+  // size_t serializePropVar(VarTrace<bool>& prop);
+  size_t serializeIntVar(VarTrace<ValueType>& intvar);
+  // size_t serializeArrayVar(VarTrace<std::vector<uint32_t>>& arrayvar);
+
+ private:
+  size_t bytecount;
+  uint8_t* destaddr;
+};
+
 #endif
