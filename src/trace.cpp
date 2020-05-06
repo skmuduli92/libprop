@@ -5,7 +5,7 @@
 
 #include "trace.h"
 
-size_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
+uint32_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
 
   //
   // two parts of the data to be stored header part contains the total block size
@@ -18,7 +18,7 @@ size_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
   //
 
   uint8_t* currdest = dest;
-  size_t bytecount = 0;
+  uint32_t bytecount = 0;
 
   if (trace->numProps() != 0) {
     // TODO :
@@ -27,8 +27,8 @@ size_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
   }
 
   // reserving some bytes for header
-  bytecount += sizeof(size_t);
-  currdest += sizeof(size_t);
+  bytecount += sizeof(bytecount);
+  currdest += sizeof(bytecount);
 
   auto nprops = trace->numProps();
   auto nvars = trace->numVars();
@@ -85,13 +85,48 @@ size_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
     }
   }
 
-  assert(currdest == dest + bytecount);
+  // storing the header
+  memcpy(dest, &bytecount, sizeof(bytecount));
 
+  assert(currdest == dest + bytecount);
   return bytecount;
 }
 
 PTrace TraceSerialize::load(uint8_t* memloc) {
-  PTrace trace(new Trace(0, 2));
+
+  // PTrace trace(new Trace(nprops, nvars));
+
+  uint8_t* currsrc = memloc;
+
+  uint32_t blocksize;
+  memcpy(&blocksize, currsrc, sizeof(blocksize));
+  currsrc += sizeof(blocksize);
+
+  uint32_t nprops;
+  uint32_t nvars;
+  uint32_t lastTStep;
+
+  memcpy(&nprops, currsrc, sizeof(nprops));
+  currsrc += sizeof(nprops);
+
+  memcpy(&nvars, currsrc, sizeof(nvars));
+  currsrc += sizeof(nvars);
+
+  memcpy(&lastTStep, currsrc, sizeof(lastTStep));
+  currsrc += sizeof(lastTStep);
+
+  // create trace object
+  PTrace trace(new Trace(nprops, nvars));
+  uint32_t value;
+
+  for (size_t varid = 0; varid < nvars; ++varid) {
+    for (size_t tstep = 0; tstep <= lastTStep; ++tstep) {
+      memcpy(&value, currsrc, sizeof(value));
+      currsrc += sizeof(value);
+      trace->updateTermValue(varid, tstep, value);
+    }
+  }
+
   return trace;
 }
 
@@ -114,13 +149,13 @@ size_t TraceSerialize::serializeIntVar(uint8_t* dest, VarTrace<ValueType>& intva
   return totalbytes;
 }
 
-size_t TraceSerialize::byteStorage(PTrace trace) {
+uint32_t TraceSerialize::byteStorage(PTrace trace) {
 
   // header_size + numvars + numprops + lastcycle
   auto nprops = trace->numProps();
   auto nvars = trace->numVars();
   size_t totalsize =
-      sizeof(size_t) + sizeof(nprops) + sizeof(nvars) + sizeof(trace->lastCycle);
+      sizeof(uint32_t) + sizeof(nprops) + sizeof(nvars) + sizeof(trace->lastCycle);
 
   // TODO : compute size of the prop vars
 

@@ -76,6 +76,13 @@ struct VarTrace {
   }
 
   size_t size() const { return datapoints.size(); }
+
+  bool operator!=(VarTrace<T> const& other) const {
+    return !(datapoints == other.datapoints);
+  }
+  bool operator==(VarTrace<T> const& other) const {
+    return datapoints == other.datapoints;
+  }
 };
 
 using ValueType = std::variant<uint32_t, std::vector<uint32_t>>;
@@ -85,7 +92,7 @@ class Trace {
   std::vector<VarTrace<bool>> propositions;
 
   //
-  // TODO :
+  // TODO : https://github.com/skmuduli92/libprop/issues/2#issue-612886338
   //  + instead of making ValueType a std::variant
   //    make VarTrace a variant, this will fix non-homogeneity issue
   //
@@ -152,24 +159,40 @@ class Trace {
   }
 
   /// get trace length (un-compressed)
-  size_t length(void) { return 1 + lastCycle; }
+  size_t length(void) const { return 1 + lastCycle; }
 
   // utility function to store a trace object in binary format for
+  bool operator==(Trace const& other) const {
+
+    if (numProps() != other.numProps()) return false;
+    if (numVars() != other.numVars()) return false;
+    if (length() != other.length()) return false;
+
+    for (size_t pi = 0; pi < numProps(); ++pi) {
+      if (propositions[pi] != other.propositions[pi]) return false;
+    }
+
+    for (size_t vi = 0; vi < numVars(); ++vi) {
+      if (variables[vi] != other.variables[vi]) return false;
+    }
+
+    return true;
+  }
+
+  bool operator!=(Trace const& other) const { return !(*this == other); }
 
  private:
   friend class TraceSerialize;
-
-  // TODO : overload == operator to test load and store
 };
 
 class TraceSerialize {
 
  public:
-  static size_t store(uint8_t* dest, PTrace trace);
+  static uint32_t store(uint8_t* dest, PTrace trace);
   static PTrace load(uint8_t* memloc);
 
   /// returns no. of bytes to store the trace object in raw binary
-  static size_t byteStorage(PTrace trace);
+  static uint32_t byteStorage(PTrace trace);
 
  private:
   // private members to handle each of vartype
