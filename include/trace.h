@@ -165,25 +165,22 @@ class Trace {
 class TraceSerialize {
 
  public:
-  TraceSerialize(uint8_t* memaddr) : bytecount(0), destaddr(memaddr) {}
-
-  void store(PTrace trace);
-  PTrace load(void* memloc);
-  void setdest(uint8_t* memloc) { destaddr = memloc; }
+  static size_t store(uint8_t* dest, PTrace trace);
+  static PTrace load(uint8_t* memloc);
 
   /// returns no. of bytes to store the trace object in raw binary
-  static size_t getsize(PTrace trace);
+  static size_t byteStorage(PTrace trace);
 
  private:
   // private members to handle each of vartype
   // returns amount of bytes written to the location
   // size_t serializePropVar(VarTrace<bool>& prop);
-  size_t serializeIntVar(VarTrace<ValueType>& intvar);
+  static size_t serializeIntVar(uint8_t* dest, VarTrace<ValueType>& intvar);
   // size_t serializeArrayVar(VarTrace<std::vector<uint32_t>>& arrayvar);
 
- private:
-  size_t bytecount;
-  uint8_t* destaddr;
+  // private:
+  //  size_t bytecount;
+  //  uint8_t* destaddr;
 };
 
 #endif

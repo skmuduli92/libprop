@@ -8,7 +8,7 @@
 
 #include <memory>
 
-TEST(PropertyLibTest, StoreTraceObject) {
+TEST(TraceSerializeTest, StoreTraceObject) {
 
   PTrace trace(new Trace(0, 2));
 
@@ -19,12 +19,13 @@ TEST(PropertyLibTest, StoreTraceObject) {
     trace->updateTermValue(1, cycle, yvalue);
   }
 
-  size_t memsize = TraceSerialize::getsize(trace);
+  size_t memsize = TraceSerialize::byteStorage(trace);
   std::cout << "total size of trace : " << memsize << std::endl;
 
-  uint8_t* memptr = new uint8_t[memsize];
-  // std::shared_ptr<uint8_t[]> memptr = std::make_shared<uint8_t[]>(memsize);
+  std::shared_ptr<uint8_t[]> memptr(new uint8_t[memsize],
+                                    std::default_delete<uint8_t[]>());
 
-  TraceSerialize ts(memptr);
-  ts.store(trace);
+  size_t bstorage = TraceSerialize::store(memptr.get(), trace);
+
+  EXPECT_EQ(bstorage, memsize);
 }

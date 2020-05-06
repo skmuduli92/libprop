@@ -5,51 +5,20 @@
 
 #include "trace.h"
 
-// utilities to sirielize and deserielize Trace objects
-//
-
-// == class VarTrace
-
-// == class Trace
-//
-
-//   std::vector<VarTrace<bool>> propositions;
-//
-//   std::vector<VarTrace<ValueType>> variables;
-//
-//   unsigned numProps;
-//   unsigned numVars; // scan for types of each numvars
-//                     // throw exception for arrayvar (not supported now)
-//
-//   unsigned lastcycles; // size = 1 + lastcycle
-//   - storing the data in uncompressed format for now we can add compressed feature late
-//
-//   - storing the propositions, its bit easy since they are boolean data
-//   $
-//    for prop in propositions
-//      for t in [0, lastcycle]
-//        bstream << prop[t]
-//
-//    for intvar in numvars
-//      for t in [0, lastcycle]
-//        bstream << intvar[t]
-//
-
-void TraceSerialize::store(PTrace trace) {
+size_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
 
   //
   // two parts of the data to be stored header part contains the total block size
-  // including the header. Multiple data is stored in contiguous order
+  // including the header.
   //
-  //                                    (new block to store)
-  // ,,,,,,,,,,,,,,,,,,,,,,,,,,,,, ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-  // |block-1 size | block-1 data| | block-2 size | block-2 data|
-  // ''''''''''''''''''''''''''''' ''''''''''''''''''''''''''''''
-  //                             | |
-  //   no. of bytes till now     v v current_addr
-  //                  <bytecount>
+  // ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+  // |   block-1 header   | block-1 data  |
+  // ''''''''''''''''''''''''''''''''''''''
+  //  <---- store returns total size ---->
+  //
 
-  uint8_t* currdest = destaddr + bytecount;
+  uint8_t* currdest = dest;
+  size_t bytecount = 0;
 
   if (trace->numProps() != 0) {
     // TODO :
@@ -61,14 +30,15 @@ void TraceSerialize::store(PTrace trace) {
   bytecount += sizeof(size_t);
   currdest += sizeof(size_t);
 
+  auto nprops = trace->numProps();
+  auto nvars = trace->numVars();
+
   // store numprops
-  unsigned nprops = trace->numProps();
   memcpy(currdest, &nprops, sizeof(nprops));
   currdest += sizeof(nprops);
   bytecount += sizeof(nprops);
 
   // store numvars
-  unsigned nvars = trace->numVars();
   memcpy(currdest, &nvars, sizeof(nvars));
   currdest += sizeof(nvars);
   bytecount += sizeof(nvars);
@@ -85,19 +55,19 @@ void TraceSerialize::store(PTrace trace) {
   for (auto& termvar : trace->variables) {
 
     //----------------------------------------------------------------
-    // FIXME:
+    // TODO:
     // assuming rest of the element in the array are homogenous
     // change logic after issue #2 is pushed:
     // https://github.com/skmuduli92/libprop/issues/2#issue-612886338
     //----------------------------------------------------------------
 
     size_t vartype = termvar[0].index();
-    size_t bcount;
+    size_t bcount = 0;
 
     switch (vartype) {
       case 0:
         // uint32_t type
-        bcount = serializeIntVar(termvar);
+        bcount = serializeIntVar(currdest, termvar);
         bytecount += bcount;
         currdest += bcount;
         break;
@@ -115,15 +85,22 @@ void TraceSerialize::store(PTrace trace) {
     }
   }
 
-  assert(currdest == destaddr + bytecount);
+  assert(currdest == dest + bytecount);
+
+  return bytecount;
 }
 
-size_t TraceSerialize::serializeIntVar(VarTrace<ValueType>& intvar) {
+PTrace TraceSerialize::load(uint8_t* memloc) {
+  PTrace trace(new Trace(0, 2));
+  return trace;
+}
+
+size_t TraceSerialize::serializeIntVar(uint8_t* dest, VarTrace<ValueType>& intvar) {
 
   size_t dsize = sizeof(uint32_t);
   size_t totalbytes = dsize * (1 + intvar.lastCycle);
 
-  uint8_t* curr_addr = destaddr + bytecount;
+  uint8_t* curr_addr = dest;
 
   for (size_t tstep = 0; tstep <= intvar.lastCycle; ++tstep) {
     uint32_t data = std::get<uint32_t>(intvar[tstep]);
@@ -137,17 +114,19 @@ size_t TraceSerialize::serializeIntVar(VarTrace<ValueType>& intvar) {
   return totalbytes;
 }
 
-size_t TraceSerialize::getsize(PTrace trace) {
+size_t TraceSerialize::byteStorage(PTrace trace) {
 
   // header_size + numvars + numprops + lastcycle
-  size_t totalsize = 4 * sizeof(uint32_t);
+  auto nprops = trace->numProps();
+  auto nvars = trace->numVars();
+  size_t totalsize =
+      sizeof(size_t) + sizeof(nprops) + sizeof(nvars) + sizeof(trace->lastCycle);
 
   // TODO : compute size of the prop vars
 
   // computing size of termvars
 
   for (auto& termvar : trace->variables) {
-
     size_t vartype = termvar[0].index();
 
     switch (vartype) {
