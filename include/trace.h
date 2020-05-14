@@ -86,6 +86,7 @@ struct VarTrace {
 };
 
 using ValueType = std::variant<uint32_t, std::vector<uint32_t>>;
+using TraceType = std::variant<VarTrace<uint32_t>, VarTrace<std::vector<uint32_t>>>;
 
 class Trace {
   /** A vector of traces for each propositional variable. */
@@ -100,7 +101,8 @@ class Trace {
   //
 
   /** A vector of traces for each term variable. */
-  std::vector<VarTrace<ValueType>> variables;
+  // std::vector<VarTrace<ValueType>> variables;
+  std::vector<TraceType> variables;
 
   /** The last valid time cycle in this trace. */
   uint32_t lastCycle;
@@ -123,7 +125,8 @@ class Trace {
     if (lastCycle < cycle) {
       lastCycle = cycle;
     }
-    variables[i].updateValue(cycle, value);
+
+    std::visit(VariantTraceWriter{cycle, variables[i]}, value);
   }
 
   /** Update the value of proposition i at time cycle. */
@@ -138,7 +141,7 @@ class Trace {
   /** Return the value of variable i at time cycle. */
   ValueType termValueAt(unsigned i, uint32_t cycle) {
     assert(i < variables.size());
-    return variables[i][cycle];
+    return std::visit(VariantTraceReader{cycle}, variables[i]);
   }
 
   /** Return the value of a proposition i at time cycle. */
@@ -154,7 +157,8 @@ class Trace {
       p.extendToCycle(cycle);
     }
     for (auto v : variables) {
-      v.extendToCycle(cycle);
+      // v.extendToCycle(cycle);
+      std::visit(VariantExtendCycle{cycle}, v);
     }
   }
 
@@ -181,29 +185,49 @@ class Trace {
 
   bool operator!=(Trace const& other) const { return !(*this == other); }
 
- private:
-  friend class TraceSerialize;
-};
-
-class TraceSerialize {
-
  public:
-  static uint32_t store(uint8_t* dest, PTrace trace);
-  static PTrace load(uint8_t* memloc);
+  // visitors for std::variant, executes appropriate logic based on the active type
 
-  /// returns no. of bytes to store the trace object in raw binary
-  static uint32_t byteStorage(PTrace trace);
+  struct VariantTraceWriter {
+    uint32_t time;
+    TraceType& tr;
 
- private:
-  // private members to handle each of vartype
-  // returns amount of bytes written to the location
-  // size_t serializePropVar(VarTrace<bool>& prop);
-  static size_t serializeIntVar(uint8_t* dest, VarTrace<ValueType>& intvar);
-  // size_t serializeArrayVar(VarTrace<std::vector<uint32_t>>& arrayvar);
+    void operator()(uint32_t& val) {
+      if (time == 0) {
+        tr = VarTrace<uint32_t>();
+      }
 
-  // private:
-  //  size_t bytecount;
-  //  uint8_t* destaddr;
+      VarTrace<uint32_t>& varref = std::get<VarTrace<uint32_t>>(tr);
+      varref.updateValue(time, val);
+    }
+
+    void operator()(std::vector<uint32_t>& val) {
+      if (time == 0) {
+        tr = VarTrace<std::vector<uint32_t>>();
+      }
+
+      VarTrace<std::vector<uint32_t>>& varref =
+          std::get<VarTrace<std::vector<uint32_t>>>(tr);
+
+      varref.updateValue(time, val);
+    }
+  };
+
+  struct VariantTraceReader {
+    uint32_t time;
+
+    ValueType operator()(VarTrace<uint32_t>& vt) const { return vt[time]; }
+    ValueType operator()(VarTrace<std::vector<uint32_t>>& vt) const { return vt[time]; }
+  };
+
+  struct VariantExtendCycle {
+    uint32_t cycle;
+
+    void operator()(VarTrace<uint32_t>& vt) const { vt.extendToCycle(cycle); }
+    void operator()(VarTrace<std::vector<uint32_t>>& vt) const {
+      vt.extendToCycle(cycle);
+    }
+  };
 };
 
 #endif

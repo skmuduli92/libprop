@@ -38,7 +38,6 @@ add_library(
   src/formula.cpp
   src/formula_util.cpp
   src/parser.cpp
-  src/trace.cpp
   )
 
 # building libprop test
@@ -61,7 +60,6 @@ if (BUILD_TESTS)
     test/test_termarray.cpp
     test/test_vartrace.cpp
     test/test_complexprops.cpp
-    test/test_serialize.cpp
     )
 
   target_link_libraries(testlibprop libprop gtest pthread)
@@ -70,10 +68,3 @@ if (BUILD_TESTS)
 else ()
   message(STATUS "Build tests: OFF")
 endif()
-
-# Copying formula files
-file(COPY extras/ DESTINATION ${CMAKE_BINARY_DIR}/bin)
-
-add_executable(runlibprop src/TestLibProp.cpp)
-target_link_libraries(runlibprop libprop)
-
