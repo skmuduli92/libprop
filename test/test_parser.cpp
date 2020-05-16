@@ -19,7 +19,7 @@ TEST(PropertyLibTest, Parse_NOT) {
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
-  EXPECT_TRUE(origPropPruned == regenStrPruned);
+  EXPECT_EQ(origPropPruned, regenStrPruned);
 }
 
 TEST(PropertyLibTest, Parse_AND) {
@@ -27,7 +27,7 @@ TEST(PropertyLibTest, Parse_AND) {
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
-  EXPECT_TRUE(origPropPruned == regenStrPruned);
+  EXPECT_EQ(origPropPruned, regenStrPruned);
 }
 
 TEST(PropertyLibTest, Parse_OR) {
@@ -35,7 +35,7 @@ TEST(PropertyLibTest, Parse_OR) {
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
-  EXPECT_TRUE(origPropPruned == regenStrPruned);
+  EXPECT_EQ(origPropPruned, regenStrPruned);
 }
 
 TEST(PropertyLibTest, Parse_IMPLIES) {
@@ -43,7 +43,7 @@ TEST(PropertyLibTest, Parse_IMPLIES) {
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
-  EXPECT_TRUE(origPropPruned == regenStrPruned);
+  EXPECT_EQ(origPropPruned, regenStrPruned);
 }
 
 TEST(PropertyLibTest, Parse_TraceSelect) {
@@ -51,7 +51,7 @@ TEST(PropertyLibTest, Parse_TraceSelect) {
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
-  EXPECT_TRUE(origPropPruned == regenStrPruned);
+  EXPECT_EQ(origPropPruned, regenStrPruned);
 }
 
 TEST(PropertyLibTest, Parse_TestFailure_InvalidVarName) {
@@ -95,7 +95,7 @@ TEST(PropertyLibTest, Parse_ComplexProperty) {
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
-  EXPECT_TRUE(origPropPruned == regenStrPruned);
+  EXPECT_EQ(origPropPruned, regenStrPruned);
 }
 
 TEST(PropertyLibTest, Parse_TestFailure_ComplexProperty) {
@@ -111,7 +111,7 @@ TEST(PropertyLibTest, Parse_TermVarArray) {
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
-  EXPECT_TRUE(origPropPruned == regenStrPruned);
+  EXPECT_EQ(origPropPruned, regenStrPruned);
 }
 
 TEST(PropertyLibTest, ParserVarMap) {
@@ -131,4 +131,17 @@ TEST(PropertyLibTest, ParserVarMap) {
 
   EXPECT_EQ(hpltl1->getVarId("idOne"), hpltl2->getVarId("idOne"));
   EXPECT_EQ(hpltl1->getVarId("idTwo"), hpltl2->getVarId("idTwo"));
+}
+
+TEST(PropertyLibTest, ParseFormulaWithUnderscore) {
+
+  std::string prop = "( G+ ( IMPLIES ( EQ aes_reg_state_next )( EQ aes_reg_start ) ) )";
+  HyperPLTL::PVarMap varmap = std::make_shared<HyperPLTL::VarMap>();
+  varmap->addIntVar("aes_reg_start");
+  varmap->addIntVar("aes_reg_state_next");
+
+  std::string origPropPruned = prune_whitespaces(prop);
+  std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
+
+  EXPECT_EQ(origPropPruned, regenStrPruned);
 }

@@ -55,7 +55,8 @@ auto const ustr = x3::string("U");
 auto const keywords = andstr | orstr | notstr | impstr | gstrplus | xstrplus | fstrplus |
                       ustr | eqstr | gstrminus | xstrminus | fstrminus;
 
-auto const idexpr_def = (x3::lexeme[x3::alpha >> *(x3::alnum)] - keywords);
+auto const idexpr_def =
+    (x3::lexeme[x3::alpha >> *(x3::alnum | x3::char_('_'))]) - keywords;
 
 // TODO : create another heirarchy to separate optimisitc and pessimistic temporal
 // operators
