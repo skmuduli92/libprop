@@ -5,183 +5,122 @@
 
 #include "trace.h"
 
-uint32_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
+size_t TraceSerialize::getByteSize(PTrace trace) {
 
-  //
-  // two parts of the data to be stored header part contains the total block size
-  // including the header.
-  //
-  // ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-  // |   block-1 header   | block-1 data  |
-  // ''''''''''''''''''''''''''''''''''''''
-  //  <---- store returns total size ---->
-  //
+  size_t numBytes = 0;
+  // headesize = size of totalsize + numprops + numvars + numcycles
+  const size_t headerSize = 4 * sizeof(uint32_t);
 
-  uint8_t* currdest = dest;
-  uint32_t bytecount = 0;
+  numBytes += sizeof(bool) * trace->numProps();
 
-  if (trace->numProps() != 0) {
-    // TODO :
-    std::cerr << "Error : serialization is not supported for propositions\n";
-    exit(1);
+  // calculate the number of uint32_t elements in the termIntVar and termArrayVar
+  // count 1 for intvar and array size for array var
+
+  size_t nTermElems = 0;
+  for (auto& tvar : trace->variables) {
+    nTermElems += std::visit(ElemCounter{}, tvar);
   }
 
-  // reserving some bytes for header
-  bytecount += sizeof(bytecount);
-  currdest += sizeof(bytecount);
+  numBytes += sizeof(uint32_t) * nTermElems * (trace->length());
+  return numBytes + headerSize;
+}
 
-  auto nprops = trace->numProps();
-  auto nvars = trace->numVars();
+PTrace TraceSerialize::load(uint8_t* source) {
 
-  // store numprops
-  memcpy(currdest, &nprops, sizeof(nprops));
-  currdest += sizeof(nprops);
-  bytecount += sizeof(nprops);
+  const size_t u32size = sizeof(uint32_t);
+  const size_t boolsize = sizeof(bool);
 
-  // store numvars
-  memcpy(currdest, &nvars, sizeof(nvars));
-  currdest += sizeof(nvars);
-  bytecount += sizeof(nvars);
+  uint32_t numBytes = 0;
+  uint32_t nprops = 0;
+  uint32_t nvars = 0;
+  uint32_t ncycles = 0;
 
-  // store lastCycle value
-  memcpy(currdest, &(trace->lastCycle), sizeof(trace->lastCycle));
-  currdest += sizeof(trace->lastCycle);
-  bytecount += sizeof(trace->lastCycle);
+  uint8_t* currloc = source;
 
-  // for (auto& propvar : trace->propositions) {
-  //   // TODO : to be implemented
-  // }
+  memcpy(&numBytes, currloc, u32size);
+  currloc += u32size;
 
-  for (auto& termvar : trace->variables) {
+  memcpy(&nprops, currloc, u32size);
+  currloc += u32size;
 
-    //----------------------------------------------------------------
-    // TODO:
-    // assuming rest of the element in the array are homogenous
-    // change logic after issue #2 is pushed:
-    // https://github.com/skmuduli92/libprop/issues/2#issue-612886338
-    //----------------------------------------------------------------
+  memcpy(&nvars, currloc, u32size);
+  currloc += u32size;
 
-    size_t vartype = termvar[0].index();
-    size_t bcount = 0;
+  memcpy(&ncycles, currloc, u32size);
+  currloc += u32size;
 
-    switch (vartype) {
-      case 0:
-        // uint32_t type
-        bcount = serializeIntVar(currdest, termvar);
-        bytecount += bcount;
-        currdest += bcount;
-        break;
+  // create the trace object
+  PTrace trace(new Trace(nprops, nvars));
 
-      case 1:
-        // std::vector<uint32_t>
-        // TODO : needs to implement
-        std::cerr << "Error : TermArrayVar is not supported yet\n";
-        exit(1);
-        break;
-
-      default:
-        assert(false);
-        break;
+  for (size_t pid = 0; pid < nprops; ++pid) {
+    bool data = false;
+    for (size_t tstep = 0; tstep < ncycles; ++tstep) {
+      memcpy(&data, currloc, u32size);
+      trace->updatePropValue(pid, tstep, data);
+      currloc += boolsize;
     }
   }
 
-  // storing the header
-  memcpy(dest, &bytecount, sizeof(bytecount));
-
-  assert(currdest == dest + bytecount);
-  return bytecount;
-}
-
-PTrace TraceSerialize::load(uint8_t* memloc) {
-
-  // PTrace trace(new Trace(nprops, nvars));
-
-  uint8_t* currsrc = memloc;
-
-  uint32_t blocksize;
-  memcpy(&blocksize, currsrc, sizeof(blocksize));
-  currsrc += sizeof(blocksize);
-
-  uint32_t nprops;
-  uint32_t nvars;
-  uint32_t lastTStep;
-
-  memcpy(&nprops, currsrc, sizeof(nprops));
-  currsrc += sizeof(nprops);
-
-  memcpy(&nvars, currsrc, sizeof(nvars));
-  currsrc += sizeof(nvars);
-
-  memcpy(&lastTStep, currsrc, sizeof(lastTStep));
-  currsrc += sizeof(lastTStep);
-
-  // create trace object
-  PTrace trace(new Trace(nprops, nvars));
-  uint32_t value;
-
-  for (size_t varid = 0; varid < nvars; ++varid) {
-    for (size_t tstep = 0; tstep <= lastTStep; ++tstep) {
-      memcpy(&value, currsrc, sizeof(value));
-      currsrc += sizeof(value);
-      trace->updateTermValue(varid, tstep, value);
+  for (size_t vid = 0; vid < nvars; ++vid) {
+    uint32_t data = 0;
+    for (size_t tstep = 0; tstep < ncycles; ++tstep) {
+      memcpy(&data, currloc, u32size);
+      trace->updateTermValue(vid, tstep, data);
+      currloc += u32size;
     }
   }
 
   return trace;
 }
 
-size_t TraceSerialize::serializeIntVar(uint8_t* dest, VarTrace<ValueType>& intvar) {
+size_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
 
-  size_t dsize = sizeof(uint32_t);
-  size_t totalbytes = dsize * (1 + intvar.lastCycle);
+  const uint32_t nprops = trace->numProps();
+  const uint32_t nvars = trace->numVars();
+  const uint32_t ncycles = trace->length();
 
-  uint8_t* curr_addr = dest;
+  const size_t u32size = sizeof(uint32_t);
+  const size_t boolsize = sizeof(bool);
 
-  for (size_t tstep = 0; tstep <= intvar.lastCycle; ++tstep) {
-    uint32_t data = std::get<uint32_t>(intvar[tstep]);
-    memcpy(curr_addr, &data, dsize);
-    curr_addr += dsize;
-  }
+  uint8_t* currloc = dest;
 
-  // TODO : just sending this as an ACK, change function signature
-  // later to return -1 on failure.
+  // store first 4bytes for total size of the memory segment
+  currloc += u32size;
 
-  return totalbytes;
-}
+  memcpy(currloc, &nprops, u32size);
+  currloc += u32size;
 
-uint32_t TraceSerialize::byteStorage(PTrace trace) {
+  memcpy(currloc, &nvars, u32size);
+  currloc += u32size;
 
-  // header_size + numvars + numprops + lastcycle
-  auto nprops = trace->numProps();
-  auto nvars = trace->numVars();
-  size_t totalsize =
-      sizeof(uint32_t) + sizeof(nprops) + sizeof(nvars) + sizeof(trace->lastCycle);
+  memcpy(currloc, &ncycles, u32size);
+  currloc += u32size;
 
-  // TODO : compute size of the prop vars
+  // propositions and variables will be expanded while storing to the memory location
 
-  // computing size of termvars
-
-  for (auto& termvar : trace->variables) {
-    size_t vartype = termvar[0].index();
-
-    switch (vartype) {
-      case 0:
-        // uint32_t type
-        totalsize += (1 + termvar.lastCycle) * sizeof(uint32_t);
-        break;
-
-      case 1:
-        // std::vector<uint32_t>
-        // TODO : needs to implement
-        std::cerr << "Error : TermArrayVar is not supported yet\n";
-        exit(1);
-        break;
-
-      default:
-        assert(false);
-        break;
+  // copy propositions to current desitnation
+  for (auto& prop : trace->propositions) {
+    for (uint32_t tstep = 0; tstep < ncycles; ++tstep) {
+      bool data = prop[tstep];
+      memcpy(currloc, &data, boolsize);
+      currloc += boolsize;
     }
   }
 
-  return totalsize;
+  // copy variables to current desitnation
+  // TODO : add support for array terms later, currently only supporting
+  // integer termvar type
+
+  for (uint32_t vid = 0; vid < nvars; ++vid) {
+    for (uint32_t tstep = 0; tstep < ncycles; ++tstep) {
+      uint32_t data = std::get<uint32_t>(trace->termValueAt(vid, tstep));
+      memcpy(currloc, &data, u32size);
+      currloc += u32size;
+    }
+  }
+
+  uint32_t numBytes = currloc - dest;
+  memcpy(dest, &numBytes, u32size);
+
+  return numBytes;
 }

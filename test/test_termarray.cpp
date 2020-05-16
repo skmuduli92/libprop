@@ -13,13 +13,6 @@ void randomizeVecData(std::vector<uint32_t>& vec) {
   }
 }
 
-void printVec(std::vector<uint32_t>& vec) {
-  for (uint32_t& data : vec) {
-    std::cout << data << ", ";
-  }
-  std::cout << std::endl;
-}
-
 void resetData(std::vector<uint32_t>& vec) {
   for (uint32_t& data : vec) {
     data = 0;

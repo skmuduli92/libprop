@@ -39,9 +39,10 @@ struct VarTrace {
       size_t last = datapoints.size() - 1;
       assert(last <= time);
 
-      // check if we need to add.
+      // check if we need to add.g
       if (datapoints[last].second != v) {
-        datapoints.push_back(std::pair(time, v));
+        std::pair<uint32_t, T> tempdata(time, v);
+        datapoints.emplace_back(tempdata);
       }  // else nothing to do.
     }
 
@@ -75,7 +76,7 @@ struct VarTrace {
       return lower->second;
   }
 
-  size_t size() const { return datapoints.size(); }
+  size_t dimension() const { return datapoints.size(); }
 
   bool operator!=(VarTrace<T> const& other) const {
     return !(datapoints == other.datapoints);
@@ -228,6 +229,26 @@ class Trace {
       vt.extendToCycle(cycle);
     }
   };
+
+ private:
+  friend class TraceSerialize;
+};
+
+class TraceSerialize {
+
+  // storing data in compressed format
+
+  struct ElemCounter {
+
+    // FIXME : fix the logic of vec length
+    size_t operator()([[maybe_unused]] VarTrace<uint32_t>& tv) { return 1; }
+    size_t operator()(VarTrace<std::vector<uint32_t>>& tv) { return tv.dimension(); }
+  };
+
+ public:
+  static size_t getByteSize(PTrace trace);
+  static size_t store(uint8_t* dest, PTrace trace);
+  static PTrace load(uint8_t* source);
 };
 
 #endif

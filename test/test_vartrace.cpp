@@ -17,7 +17,7 @@ TEST(PropertyLibTest, TestVarTrace) {
   for (; cycle < 10; ++cycle) vartr.updateValue(cycle, 3);
 
   // trace is in compressed format
-  EXPECT_EQ(3, vartr.size());
+  EXPECT_EQ(3, vartr.dimension());
 
   EXPECT_EQ(1, vartr[0]);
   EXPECT_EQ(1, vartr[1]);
