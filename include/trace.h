@@ -265,16 +265,12 @@ class TraceSerialize {
       memcpy(currloc, &dim, sizeof(dim));
       currloc += u32size;
 
-      uint32_t data;
-      std::vector<uint32_t> tvec(dim);
-
       for (uint32_t tstep = 0; tstep < ncycles; tstep++) {
+        std::vector<uint32_t> tvec = tv[tstep];
         for (uint32_t did = 0; did < dim; ++did) {
-          memcpy(&data, currloc, u32size);
-          tvec[did] = data;
+          memcpy(currloc, &tvec[did], u32size);
           currloc += u32size;
         }
-        tv.updateValue(tstep, tvec);
       }
 
       return currloc - dest;

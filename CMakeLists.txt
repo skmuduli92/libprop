@@ -48,7 +48,8 @@ if (BUILD_TESTS)
 
   add_executable(
     testlibprop
-    test/testprop.cpp
+    test/testmain.cpp
+    test/testutils.cpp
     test/test_parser.cpp
     test/test_GPlus.cpp
     test/test_GMinus.cpp
