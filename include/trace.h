@@ -3,6 +3,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
+#include <iomanip>
+#include <iostream>
 #include <memory>
 #include <variant>
 #include <vector>
@@ -76,7 +79,7 @@ struct VarTrace {
       return lower->second;
   }
 
-  size_t dimension() const { return datapoints.size(); }
+  uint32_t size() const { return datapoints.size(); }
 
   bool operator!=(VarTrace<T> const& other) const {
     return !(datapoints == other.datapoints);
@@ -93,16 +96,7 @@ class Trace {
   /** A vector of traces for each propositional variable. */
   std::vector<VarTrace<bool>> propositions;
 
-  //
-  // TODO : https://github.com/skmuduli92/libprop/issues/2#issue-612886338
-  //  + instead of making ValueType a std::variant
-  //    make VarTrace a variant, this will fix non-homogeneity issue
-  //
-  //  + write visitor methods to process serialization nicely
-  //
-
   /** A vector of traces for each term variable. */
-  // std::vector<VarTrace<ValueType>> variables;
   std::vector<TraceType> variables;
 
   /** The last valid time cycle in this trace. */
@@ -127,7 +121,7 @@ class Trace {
       lastCycle = cycle;
     }
 
-    std::visit(VariantTraceWriter{cycle, variables[i]}, value);
+    std::visit(VariantTraceWriteVisitor{cycle, variables[i]}, value);
   }
 
   /** Update the value of proposition i at time cycle. */
@@ -142,7 +136,7 @@ class Trace {
   /** Return the value of variable i at time cycle. */
   ValueType termValueAt(unsigned i, uint32_t cycle) {
     assert(i < variables.size());
-    return std::visit(VariantTraceReader{cycle}, variables[i]);
+    return std::visit(VariantTraceReadVisitor{cycle}, variables[i]);
   }
 
   /** Return the value of a proposition i at time cycle. */
@@ -158,7 +152,6 @@ class Trace {
       p.extendToCycle(cycle);
     }
     for (auto v : variables) {
-      // v.extendToCycle(cycle);
       std::visit(VariantExtendCycle{cycle}, v);
     }
   }
@@ -187,9 +180,9 @@ class Trace {
   bool operator!=(Trace const& other) const { return !(*this == other); }
 
  public:
+  // TODO : separate out visitotr structs in visitors.h file
   // visitors for std::variant, executes appropriate logic based on the active type
-
-  struct VariantTraceWriter {
+  struct VariantTraceWriteVisitor {
     uint32_t time;
     TraceType& tr;
 
@@ -214,7 +207,7 @@ class Trace {
     }
   };
 
-  struct VariantTraceReader {
+  struct VariantTraceReadVisitor {
     uint32_t time;
 
     ValueType operator()(VarTrace<uint32_t>& vt) const { return vt[time]; }
@@ -236,13 +229,56 @@ class Trace {
 
 class TraceSerialize {
 
-  // storing data in compressed format
-
   struct ElemCounter {
+    uint32_t operator()([[maybe_unused]] VarTrace<uint32_t>& tv) { return 1; }
+    uint32_t operator()(VarTrace<std::vector<uint32_t>>& tv) { return tv[0].size(); }
+  };
 
-    // FIXME : fix the logic of vec length
-    size_t operator()([[maybe_unused]] VarTrace<uint32_t>& tv) { return 1; }
-    size_t operator()(VarTrace<std::vector<uint32_t>>& tv) { return tv.dimension(); }
+  struct TraceStoreVisitor {
+
+    uint8_t* dest;
+    uint32_t ncycles;
+
+    uint32_t operator()(VarTrace<uint32_t>& tv) {
+      const uint32_t u32size = sizeof(uint32_t);
+      uint8_t* currloc = dest;
+
+      // store the dimension of current term var which is 1 for IntVar
+      uint32_t tempdata = 1;
+      memcpy(currloc, &tempdata, u32size);
+      currloc += u32size;
+
+      for (uint32_t tstep = 0; tstep < ncycles; tstep++) {
+        tempdata = tv[tstep];
+        memcpy(currloc, &tempdata, u32size);
+        currloc += u32size;
+      }
+
+      return currloc - dest;
+    }
+
+    uint32_t operator()(VarTrace<std::vector<uint32_t>>& tv) {
+      const uint32_t u32size = sizeof(uint32_t);
+      uint8_t* currloc = dest;
+      const uint32_t dim = tv[0].size();
+
+      memcpy(currloc, &dim, sizeof(dim));
+      currloc += u32size;
+
+      uint32_t data;
+      std::vector<uint32_t> tvec(dim);
+
+      for (uint32_t tstep = 0; tstep < ncycles; tstep++) {
+        for (uint32_t did = 0; did < dim; ++did) {
+          memcpy(&data, currloc, u32size);
+          tvec[did] = data;
+          currloc += u32size;
+        }
+        tv.updateValue(tstep, tvec);
+      }
+
+      return currloc - dest;
+    }
   };
 
  public:

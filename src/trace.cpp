@@ -1,7 +1,4 @@
 
-#include <cstring>
-#include <iomanip>
-#include <iostream>
 
 #include "trace.h"
 
@@ -21,7 +18,7 @@ size_t TraceSerialize::getByteSize(PTrace trace) {
     nTermElems += std::visit(ElemCounter{}, tvar);
   }
 
-  numBytes += sizeof(uint32_t) * nTermElems * (trace->length());
+  numBytes += sizeof(uint32_t) * (trace->numVars() + (nTermElems * trace->length()));
   return numBytes + headerSize;
 }
 
@@ -40,13 +37,13 @@ PTrace TraceSerialize::load(uint8_t* source) {
   memcpy(&numBytes, currloc, u32size);
   currloc += u32size;
 
+  memcpy(&ncycles, currloc, u32size);
+  currloc += u32size;
+
   memcpy(&nprops, currloc, u32size);
   currloc += u32size;
 
   memcpy(&nvars, currloc, u32size);
-  currloc += u32size;
-
-  memcpy(&ncycles, currloc, u32size);
   currloc += u32size;
 
   // create the trace object
@@ -62,11 +59,31 @@ PTrace TraceSerialize::load(uint8_t* source) {
   }
 
   for (size_t vid = 0; vid < nvars; ++vid) {
+    uint32_t dim;
+    memcpy(&dim, currloc, u32size);
+    currloc += u32size;
+
     uint32_t data = 0;
-    for (size_t tstep = 0; tstep < ncycles; ++tstep) {
-      memcpy(&data, currloc, u32size);
-      trace->updateTermValue(vid, tstep, data);
-      currloc += u32size;
+    if (dim == 1) {
+      // IntVar
+      for (size_t tstep = 0; tstep < ncycles; ++tstep) {
+        memcpy(&data, currloc, u32size);
+        trace->updateTermValue(vid, tstep, data);
+        currloc += u32size;
+      }
+    } else {
+      // ArrayVar
+      std::vector<uint32_t> vdata(dim);
+      for (size_t tstep = 0; tstep < ncycles; ++tstep) {
+
+        for (size_t did = 0; did < dim; ++did) {
+          memcpy(&data, currloc, u32size);
+          currloc += u32size;
+          vdata[did] = data;
+        }
+        // update arrayvar
+        trace->updateTermValue(vid, tstep, vdata);
+      }
     }
   }
 
@@ -87,13 +104,13 @@ size_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
   // store first 4bytes for total size of the memory segment
   currloc += u32size;
 
+  memcpy(currloc, &ncycles, u32size);
+  currloc += u32size;
+
   memcpy(currloc, &nprops, u32size);
   currloc += u32size;
 
   memcpy(currloc, &nvars, u32size);
-  currloc += u32size;
-
-  memcpy(currloc, &ncycles, u32size);
   currloc += u32size;
 
   // propositions and variables will be expanded while storing to the memory location
@@ -107,16 +124,17 @@ size_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
     }
   }
 
-  // copy variables to current desitnation
   // TODO : add support for array terms later, currently only supporting
   // integer termvar type
 
+  // store array with nvars elemes which stores the dimension of each termvar element
+  // stores 1 for IntVar and VarTrace::dimension() for ArrayVar
+
   for (uint32_t vid = 0; vid < nvars; ++vid) {
-    for (uint32_t tstep = 0; tstep < ncycles; ++tstep) {
-      uint32_t data = std::get<uint32_t>(trace->termValueAt(vid, tstep));
-      memcpy(currloc, &data, u32size);
-      currloc += u32size;
-    }
+    uint32_t bsize =
+        std::visit(TraceStoreVisitor{currloc, ncycles}, trace->variables[vid]);
+
+    currloc += bsize;
   }
 
   uint32_t numBytes = currloc - dest;
