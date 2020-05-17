@@ -1,8 +1,19 @@
-#include <gtest/gtest.h>
+#ifndef __TEST_UTILS_H
+#define __TEST_UTILS_H
 
 #include "ast.h"
+#include "formula.h"
+#include "formula_util.h"
 #include "parse_util.h"
 #include "parser.h"
+#include "trace.h"
+
+void randomizeVecData(std::vector<uint32_t>& vec);
+void resetData(std::vector<uint32_t>& vec);
+
+// guarantees the new random vector is different than
+// the current random vector provided as input
+void newRandomVecData(std::vector<uint32_t>& vec);
 
 namespace sexpr::ast {
 
@@ -76,32 +87,7 @@ struct HPLTLStringBuilder {
 }  // namespace sexpr::ast
 
 namespace HyperPLTL {
-
-std::string parse_and_regen_string(std::string const& str) {
-  typedef std::string::const_iterator iterator_type;
-  typedef sexpr::ast::VarNode SExprAst;
-
-  auto grammar = sexpr::parser();
-  SExprAst exprAst;
-
-  iterator_type iter = str.begin();
-  iterator_type end = str.end();
-
-  boost::spirit::x3::ascii::space_type space;
-  bool r = phrase_parse(iter, end, grammar, space, exprAst);
-
-  if (!r || iter != end) {
-    std::cerr << "Error : Parsing failed\n";
-    exit(1);
-  }
-
-  sexpr::ast::HPLTLStringBuilder strbuilder;
-  return strbuilder(exprAst);
-}
-
+std::string parse_and_regen_string(std::string const& str);
 }  // namespace HyperPLTL
 
-int main(int argc, char* argv[]) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+#endif

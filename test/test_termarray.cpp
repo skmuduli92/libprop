@@ -1,34 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "formula.h"
-#include "formula_util.h"
-#include "parse_util.h"
-#include "trace.h"
+#include "testutils.h"
 
 using namespace HyperPLTL;
-
-void randomizeVecData(std::vector<uint32_t>& vec) {
-  for (uint32_t& data : vec) {
-    data = rand() % std::numeric_limits<uint32_t>::max();
-  }
-}
-
-void resetData(std::vector<uint32_t>& vec) {
-  for (uint32_t& data : vec) {
-    data = 0;
-  }
-}
-
-// guarantees the new random vector is different than
-// the current random vector provided as input
-void newRandomVecData(std::vector<uint32_t>& vec) {
-  std::vector<uint32_t> oldVecd(vec);
-  while (oldVecd == vec) {
-    for (uint32_t& data : vec) {
-      data = rand() % std::numeric_limits<uint32_t>::max();
-    }
-  }
-}
 
 TEST(PropertyLibTest, ValidTracePropTermArray_Test1) {
   std::string propstr = "(G+ (EQ bytes))";

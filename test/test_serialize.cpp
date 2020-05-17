@@ -1,12 +1,7 @@
 #include <gtest/gtest.h>
-
-#include "ast.h"
-#include "formula.h"
-#include "parse_util.h"
-#include "parser.h"
-#include "trace.h"
-
 #include <memory>
+
+#include "testutils.h"
 
 TEST(TraceSerializeTest, StoreTraceObject) {
 
@@ -27,7 +22,6 @@ TEST(TraceSerializeTest, StoreTraceObject) {
   }
 
   size_t memsize = TraceSerialize::getByteSize(trace);
-
   std::shared_ptr<uint8_t[]> memptr(new uint8_t[memsize],
                                     std::default_delete<uint8_t[]>());
 
@@ -35,6 +29,29 @@ TEST(TraceSerializeTest, StoreTraceObject) {
   PTrace p = TraceSerialize::load(memptr.get());
 
   EXPECT_NE(trace, traceP);
+  EXPECT_EQ(bstorage, memsize);
+  EXPECT_EQ(*p, *trace);
+}
+
+TEST(TraceSerializeTest, StoreTraceWithArrayVar) {
+  PTrace trace(new Trace(0, 2));
+
+  std::vector<uint32_t> arrval(5);
+
+  for (size_t cycle = 0; cycle < 10; ++cycle) {
+    randomizeVecData(arrval);
+    trace->updateTermValue(0, cycle, arrval);
+    trace->updateTermValue(1, cycle, arrval);
+  }
+
+  size_t memsize = TraceSerialize::getByteSize(trace);
+  std::shared_ptr<uint8_t[]> memptr(new uint8_t[memsize],
+                                    std::default_delete<uint8_t[]>());
+
+  size_t bstorage = TraceSerialize::store(memptr.get(), trace);
+  std::cout << "bstorage : " << bstorage << std::endl;
+  PTrace p = TraceSerialize::load(memptr.get());
+
   EXPECT_EQ(bstorage, memsize);
   EXPECT_EQ(*p, *trace);
 }
