@@ -49,7 +49,6 @@ TEST(TraceSerializeTest, StoreTraceWithArrayVar) {
                                     std::default_delete<uint8_t[]>());
 
   size_t bstorage = TraceSerialize::store(memptr.get(), trace);
-  std::cout << "bstorage : " << bstorage << std::endl;
   PTrace p = TraceSerialize::load(memptr.get());
 
   EXPECT_EQ(bstorage, memsize);
