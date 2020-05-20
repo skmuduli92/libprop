@@ -229,9 +229,31 @@ class Trace {
 
 class TraceSerialize {
 
-  struct ElemCounter {
+  struct DimensionVisitor {
     uint32_t operator()([[maybe_unused]] VarTrace<uint32_t>& tv) { return 1; }
     uint32_t operator()(VarTrace<std::vector<uint32_t>>& tv) { return tv[0].size(); }
+  };
+
+  struct ElemCountVisitor {
+    uint32_t operator()(VarTrace<uint32_t>& tv) { return tv.size(); }
+    uint32_t operator()(VarTrace<std::vector<uint32_t>>& tv) { return tv.size(); }
+  };
+
+  struct ValuePrinter {
+
+    std::ostream& out;
+    uint32_t time;
+
+    void operator()(VarTrace<uint32_t>& tv) { out << tv[time]; }
+    void operator()(VarTrace<std::vector<uint32_t>>& tv) {
+      std::vector<uint32_t> vec = tv[time];
+      uint32_t dim = vec.size();
+      out << "<";
+      for (size_t did = 0; did < dim; ++did) {
+        out << vec[did] << ",";
+      }
+      out << ">";
+    }
   };
 
   struct TraceStoreVisitor {
@@ -279,8 +301,9 @@ class TraceSerialize {
 
  public:
   static size_t getByteSize(PTrace trace);
-  static size_t store(uint8_t* dest, PTrace trace);
   static PTrace load(uint8_t* source);
+  static size_t store(uint8_t* dest, PTrace trace);
+  static void stringify(std::ostream& out, PTrace trace);
 };
 
 #endif

@@ -1,5 +1,4 @@
 
-
 #include "trace.h"
 
 size_t TraceSerialize::getByteSize(PTrace trace) {
@@ -15,7 +14,7 @@ size_t TraceSerialize::getByteSize(PTrace trace) {
 
   size_t nTermElems = 0;
   for (auto& tvar : trace->variables) {
-    nTermElems += std::visit(ElemCounter{}, tvar);
+    nTermElems += std::visit(DimensionVisitor{}, tvar);
   }
 
   numBytes += sizeof(uint32_t) * (trace->numVars() + (nTermElems * trace->length()));
@@ -141,4 +140,40 @@ size_t TraceSerialize::store(uint8_t* dest, PTrace trace) {
   memcpy(dest, &numBytes, u32size);
 
   return numBytes;
+}
+
+void TraceSerialize::stringify(std::ostream& out, PTrace trace) {
+
+  out << "propvars : " << trace->numProps() << "," << std::endl;
+  out << "termvars : " << trace->numVars() << "," << std::endl;
+
+  out << "propvalues : "
+      << "[" << std::endl;
+
+  for (size_t pid = 0; pid < trace->numProps(); ++pid) {
+    uint32_t tvlen = trace->propositions[pid].size();
+    out << "PROP_VAR_" << pid << " : [ ";
+    for (uint32_t tstep = 0; tstep < tvlen; ++tstep) {
+      out << " (" << tstep << " : " << trace->propValueAt(pid, tstep) << ") , ";
+    }
+    out << " ]" << std::endl;
+  }
+
+  out << "]" << std::endl;
+
+  out << "termvalues : "
+      << "[" << std::endl;
+
+  for (size_t vid = 0; vid < trace->numVars(); ++vid) {
+    uint32_t tvlen = std::visit(ElemCountVisitor{}, trace->variables[vid]);
+    out << "TERM_VAR_" << vid << " : [ ";
+    for (uint32_t tstep = 0; tstep < tvlen; ++tstep) {
+      out << " (" << tstep << " : ";
+      std::visit(ValuePrinter{out, tstep}, trace->variables[vid]);
+      out << ") , ";
+    }
+    out << " ]" << std::endl;
+  }
+
+  out << "]" << std::endl;
 }
