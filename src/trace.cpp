@@ -51,7 +51,7 @@ PTrace TraceSerialize::load(uint8_t* source) {
   for (size_t pid = 0; pid < nprops; ++pid) {
     bool data = false;
     for (size_t tstep = 0; tstep < ncycles; ++tstep) {
-      memcpy(&data, currloc, u32size);
+      memcpy(&data, currloc, sizeof(bool));
       trace->updatePropValue(pid, tstep, data);
       currloc += boolsize;
     }
