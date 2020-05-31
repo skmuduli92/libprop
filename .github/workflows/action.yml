@@ -13,6 +13,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    -name: boost
+      run: sudo apt-get update && sudo apt-get install libpthread-workqueue0 libboost-all-dev
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
