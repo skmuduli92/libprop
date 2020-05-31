@@ -65,8 +65,8 @@ auto const varexpr_def = '(' >>
                           fplusexpr | uexpr | xminusexpr | fminusexpr | gminusexpr) >>
                          ')';
 
-auto const orexpr_def = orstr >> termexpr >> termexpr;
-auto const andexpr_def = andstr >> termexpr >> termexpr;
+auto const orexpr_def = orstr >> +(termexpr);
+auto const andexpr_def = andstr >> +(termexpr);
 auto const impexpr_def = impstr >> termexpr >> termexpr;
 auto const notexpr_def = notstr >> termexpr;
 

@@ -32,13 +32,21 @@ struct HPLTLStringBuilder {
   }
 
   result_t operator()(AndNode const& andNode) const {
-    return "(AND " + boost::apply_visitor(*this, andNode.leftArg) +
-           boost::apply_visitor(*this, andNode.rightArg) + ")";
+    std::string outstr = "(AND ";
+    for (VarNode const& vnode : andNode.args) {
+      outstr += boost::apply_visitor(*this, vnode) + " ";
+    }
+    outstr += ")";
+    return outstr;
   }
 
   result_t operator()(OrNode const& orNode) const {
-    return "(OR " + boost::apply_visitor(*this, orNode.leftArg) +
-           boost::apply_visitor(*this, orNode.rightArg) + ")";
+    std::string outstr = "(OR ";
+    for (VarNode const& vnode : orNode.args) {
+      outstr += boost::apply_visitor(*this, vnode) + " ";
+    }
+    outstr += ")";
+    return outstr;
   }
 
   result_t operator()(NotNode const& notNode) const {

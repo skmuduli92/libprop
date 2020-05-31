@@ -42,32 +42,12 @@ add_library(
   )
 
 # building libprop test
-
 if (BUILD_TESTS)
   message(STATUS "Build Tests: ON")
-
-  add_executable(
-    testlibprop
-    test/testmain.cpp
-    test/testutils.cpp
-    test/test_parser.cpp
-    test/test_GPlus.cpp
-    test/test_GMinus.cpp
-    test/test_FPlus.cpp
-    test/test_FMinus.cpp
-    test/test_XPlus.cpp
-    test/test_XMinus.cpp
-    test/test_propvar.cpp
-    test/test_until_operator.cpp
-    test/test_termarray.cpp
-    test/test_vartrace.cpp
-    test/test_complexprops.cpp
-    test/test_serialize.cpp
-    )
-
+  file(GLOB TEST_SRC "test/*.cpp")
+  add_executable(testlibprop ${TEST_SRC})
   target_link_libraries(testlibprop libprop gtest pthread)
   gtest_add_tests(TARGET testlibprop)
-
 else ()
   message(STATUS "Build tests: OFF")
 endif()

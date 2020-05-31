@@ -63,16 +63,28 @@ struct HPLTLBuilder {
   }
 
   result_t operator()(AndNode const& andNode) const {
-    result_t leftP = boost::apply_visitor(*this, andNode.leftArg);
-    result_t rightP = boost::apply_visitor(*this, andNode.rightArg);
-    result_t andP(new HyperPLTL::And(varmap, leftP, rightP));
+    std::vector<result_t> andInputVec;
+
+    // result_t leftP = boost::apply_visitor(*this, andNode.leftArg);
+    // result_t rightP = boost::apply_visitor(*this, andNode.rightArg);
+    // result_t andP(new HyperPLTL::And(varmap, leftP, rightP));
+
+    for (VarNode const& vnode : andNode.args) {
+      andInputVec.push_back(boost::apply_visitor(*this, vnode));
+    }
+
+    result_t andP(new HyperPLTL::And(varmap, andInputVec));
     return andP;
   }
 
   result_t operator()(OrNode const& orNode) const {
-    result_t leftP = boost::apply_visitor(*this, orNode.leftArg);
-    result_t rightP = boost::apply_visitor(*this, orNode.rightArg);
-    result_t orP(new HyperPLTL::Or(varmap, leftP, rightP));
+    std::vector<result_t> orInputVec;
+
+    for (VarNode const& vnode : orNode.args) {
+      orInputVec.push_back(boost::apply_visitor(*this, vnode));
+    }
+
+    result_t orP(new HyperPLTL::Or(varmap, orInputVec));
     return orP;
   }
 

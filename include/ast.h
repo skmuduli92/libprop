@@ -2,6 +2,7 @@
 #define __AST_H__
 
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
+#include <vector>
 
 namespace x3 = boost::spirit::x3;
 
@@ -60,8 +61,16 @@ struct BinaryOpNode {
   VarNode leftArg, rightArg;
 };
 
-struct AndNode : BinaryOpNode {};
-struct OrNode : BinaryOpNode {};
+struct AndNode {
+  std::string opname;
+  std::vector<VarNode> args;
+};
+
+struct OrNode {
+  std::string opname;
+  std::vector<VarNode> args;
+};
+
 struct ImpNode : BinaryOpNode {};
 
 struct GPlusNode : UnaryOpNode {};

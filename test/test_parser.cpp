@@ -145,3 +145,16 @@ TEST(PropertyLibTest, ParseFormulaWithUnderscore) {
 
   EXPECT_EQ(origPropPruned, regenStrPruned);
 }
+
+TEST(PropertyLibTest, ParseFormulaWithMultiInputAND) {
+
+  std::string prop = "(G+ ( AND (EQ one) (EQ two) (EQ three) (EQ four) (EQ five_done)))";
+  HyperPLTL::PVarMap varmap = std::make_shared<HyperPLTL::VarMap>();
+  varmap->addIntVar("aes_reg_start");
+  varmap->addIntVar("aes_reg_state_next");
+
+  std::string origPropPruned = prune_whitespaces(prop);
+  std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
+  std::cout << HyperPLTL::parse_and_regen_string(prop) << std::endl;
+  EXPECT_EQ(origPropPruned, regenStrPruned);
+}

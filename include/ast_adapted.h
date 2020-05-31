@@ -4,9 +4,9 @@
 #include <boost/fusion/include/adapt_struct.hpp>
 #include "ast.h"
 
-BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::AndNode, opname, leftArg, rightArg);
+BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::AndNode, opname, args);
 
-BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::OrNode, opname, leftArg, rightArg);
+BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::OrNode, opname, args)
 
 BOOST_FUSION_ADAPT_STRUCT(sexpr::ast::ImpNode, opname, leftArg, rightArg);
 

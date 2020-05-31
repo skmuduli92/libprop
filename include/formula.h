@@ -176,10 +176,6 @@ class Not : public HyperProp {
 /** Formula a /\ b */
 class And : public HyperProp {
  public:
-  And(PVarMap m, PHyperProp a, PHyperProp b) : HyperProp(m) {
-    args.push_back(a);
-    args.push_back(b);
-  }
   And(PVarMap m, std::vector<PHyperProp> props) : HyperProp(m) {
     std::copy(props.begin(), props.end(), std::back_inserter(args));
   }
@@ -190,10 +186,6 @@ class And : public HyperProp {
 /** Formula a \/ b */
 class Or : public HyperProp {
  public:
-  Or(PVarMap m, PHyperProp a, PHyperProp b) : HyperProp(m) {
-    args.push_back(a);
-    args.push_back(b);
-  }
   Or(PVarMap m, std::vector<PHyperProp> props) : HyperProp(m) {
     std::copy(props.begin(), props.end(), std::back_inserter(args));
   }
