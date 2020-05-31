@@ -155,6 +155,6 @@ TEST(PropertyLibTest, ParseFormulaWithMultiInputAND) {
 
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
-  std::cout << HyperPLTL::parse_and_regen_string(prop) << std::endl;
+
   EXPECT_EQ(origPropPruned, regenStrPruned);
 }
