@@ -10,10 +10,7 @@ set(CMAKE_CXX_FLAGS "-Wall -Werror -Wno-strict-overflow")
 find_package(Boost REQUIRED)
 
 # finding  googltest framework installed in the system
-enable_testing()
 find_package(Threads REQUIRED)
-find_package(GTest REQUIRED)
-
 
 if( NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Debug CACHE STRING
@@ -26,7 +23,6 @@ string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
 message(STATUS "Configuring build type: ${CMAKE_BUILD_TYPE}")
 
 include_directories(include)
-
 
 # setting binary and library output directory
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -42,7 +38,9 @@ add_library(
   )
 
 # building libprop test
-if (BUILD_TESTS)
+if (CMAKE_BUILD_TYPE MATCHES DEBUG) 
+  enable_testing()
+  find_package(GTest REQUIRED)
   message(STATUS "Build Tests: ON")
   file(GLOB TEST_SRC "test/*.cpp")
   add_executable(testlibprop ${TEST_SRC})
