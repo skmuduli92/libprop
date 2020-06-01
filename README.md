@@ -1,4 +1,4 @@
-
+![C/C++ CI](https://github.com/skmuduli92/libprop/workflows/C/C++%20CI/badge.svg)
 
 ## Build instructions
 
