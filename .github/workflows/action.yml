@@ -20,4 +20,4 @@ jobs:
     - name: build
       run: cmake --build build
     - name: test
-      run: cd build && ctest --verbose
+      run: cd build && make test
