@@ -136,10 +136,6 @@ TEST(PropertyLibTest, ParserVarMap) {
 TEST(PropertyLibTest, ParseFormulaWithUnderscore) {
 
   std::string prop = "( G+ ( IMPLIES ( EQ aes_reg_state_next )( EQ aes_reg_start ) ) )";
-  HyperPLTL::PVarMap varmap = std::make_shared<HyperPLTL::VarMap>();
-  varmap->addIntVar("aes_reg_start");
-  varmap->addIntVar("aes_reg_state_next");
-
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
@@ -149,10 +145,6 @@ TEST(PropertyLibTest, ParseFormulaWithUnderscore) {
 TEST(PropertyLibTest, ParseFormulaWithMultiInputAND) {
 
   std::string prop = "(G+ ( AND (EQ one) (EQ two) (EQ three) (EQ four) (EQ five_done)))";
-  HyperPLTL::PVarMap varmap = std::make_shared<HyperPLTL::VarMap>();
-  varmap->addIntVar("aes_reg_start");
-  varmap->addIntVar("aes_reg_state_next");
-
   std::string origPropPruned = prune_whitespaces(prop);
   std::string regenStrPruned = prune_whitespaces(HyperPLTL::parse_and_regen_string(prop));
 
