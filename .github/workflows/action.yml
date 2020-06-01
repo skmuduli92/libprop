@@ -18,6 +18,6 @@ jobs:
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
-      run: cmake --build build
+      run: cmake --build build -DGTEST_ROOT=/usr/local/include/gtest/ -DGTEST_LIBRARY=/usr/local/lib/libgtest.a
     - name: test
       run: cd build && ctest --verbose
