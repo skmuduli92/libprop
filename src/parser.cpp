@@ -64,11 +64,7 @@ struct HPLTLBuilder {
 
   result_t operator()(AndNode const& andNode) const {
     std::vector<result_t> andInputVec;
-
-    // result_t leftP = boost::apply_visitor(*this, andNode.leftArg);
-    // result_t rightP = boost::apply_visitor(*this, andNode.rightArg);
-    // result_t andP(new HyperPLTL::And(varmap, leftP, rightP));
-
+    
     for (VarNode const& vnode : andNode.args) {
       andInputVec.push_back(boost::apply_visitor(*this, vnode));
     }
@@ -79,7 +75,7 @@ struct HPLTLBuilder {
 
   result_t operator()(OrNode const& orNode) const {
     std::vector<result_t> orInputVec;
-
+    
     for (VarNode const& vnode : orNode.args) {
       orInputVec.push_back(boost::apply_visitor(*this, vnode));
     }
